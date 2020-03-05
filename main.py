@@ -48,8 +48,8 @@ if __name__ == '__main__':
     testDF = testDF.melt(
         'Samples', var_name='Algorithm', value_name='Accuracy')
 
-    sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
-                  data=trainDF, legend=True, legend_out=True).set_title('Training set')
+    # sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
+    #               data=trainDF, legend=True, legend_out=True).set_title('Training set')
 
     sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
                   data=testDF, legend=True, legend_out=True).set_title('Testing set')
