@@ -11,10 +11,9 @@ import seaborn as sns
 
 
 if __name__ == '__main__':
-    # prepare the data
+    # analyze and preprocess data
     da = DataAnalysis('data/mainSimulationAccessTraces.csv')
     da.prepareData()
-    # data.print()
 
     # Run predictions
     trainScores = {'Samples': []}
@@ -40,6 +39,7 @@ if __name__ == '__main__':
                 trainScores[algName] = [predictions[algName][0]]
                 testScores[algName] = [predictions[algName][1]]
 
+    # plot results
     trainDF = pd.DataFrame(data=trainScores)
     testDF = pd.DataFrame(data=testScores)
 
@@ -48,10 +48,12 @@ if __name__ == '__main__':
     testDF = testDF.melt(
         'Samples', var_name='Algorithm', value_name='Accuracy')
 
-    # sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
-    #               data=trainDF, legend=True, legend_out=True).set_title('Training set')
-
+    # training accuracy
     sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
-                  data=testDF, legend=True, legend_out=True).set_title('Testing set')
+                  data=trainDF, legend=True, legend_out=True).set_title('Training set')
+
+    # testing accuracy
+    # sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
+    #               data=testDF, legend=True, legend_out=True).set_title('Testing set')
 
     plt.show()
