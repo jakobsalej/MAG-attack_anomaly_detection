@@ -1,7 +1,8 @@
 import numpy as np
 import pandas as pd
 
-from sklearn.model_selection import train_test_split, cross_val_score
+from sklearn.model_selection import train_test_split, cross_val_score, cross_validate
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score
 from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC
 from sklearn.tree import DecisionTreeClassifier
@@ -61,18 +62,37 @@ class DataPrediction:
             build_fn=ann.getModel, epochs=epochs, verbose=1)
         return estimator
 
-    def predict(self, model):
+    def predict(self, model, algName):
+        print('\n\n', algName, ':\n')
+
         # k=5 cross validation on training set
-        trainScores = cross_val_score(
-            model, self.xTrain, self.yTrain)
+        trainScores = cross_validate(
+            model, self.xTrain, self.yTrain, scoring=('accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'), return_train_score=True)
+
+        trainScores = [trainScores['test_accuracy'].mean(), trainScores['test_accuracy'].std(), trainScores['test_balanced_accuracy'].mean(),
+                       trainScores['test_f1_weighted'].mean(), trainScores['test_precision_weighted'].mean(), trainScores['test_recall_weighted'].mean()]
+
+        print('Training set:', trainScores)
 
         # fit the model
         model.fit(self.xTrain, self.yTrain)
 
-        # prediction
-        testScore = model.score(self.xTest, self.yTest)
+        # predict
+        yPredicted = model.predict(self.xTest)
 
-        return trainScores.mean(), testScore
+        # get testing set scores
+        acc = accuracy_score(self.yTest, yPredicted)
+        balancedAcc = balanced_accuracy_score(self.yTest, yPredicted)
+        f1 = f1_score(self.yTest, yPredicted, average='weighted')
+        precision = precision_score(self.yTest, yPredicted, average='weighted')
+        recall = recall_score(self.yTest, yPredicted, average='weighted')
+
+        testScores = [acc, balancedAcc, f1, precision, recall]
+
+        print('Testing set:', testScores)
+        print('Unique predicted values:', np.unique(yPredicted))
+
+        return trainScores, testScores
 
     def getScores(self):
         logReg = self.logisticRegression()
@@ -81,7 +101,6 @@ class DataPrediction:
         rf = self.RandomForest()
         ann = self.ANN(5)
 
-        # return train, test scores for all algorithms
         algs = [logReg, svm, dt, rf, ann]
         algNames = ['Logistic Regression', 'SVM',
                     'Decision Tree', 'Random Forest', 'ANN']
@@ -89,8 +108,8 @@ class DataPrediction:
         predictions = {}
 
         for alg, algName in zip(algs, algNames):
-            trainScore, testScore = self.predict(alg)
-            predictions[algName] = [trainScore, testScore]
-            print(algName, 'train/test score:', trainScore, testScore)
+            trainScore, testScore = self.predict(alg, algName)
+            predictions[algName] = [trainScore[0], testScore[0]]
+            print(algName, 'train/test accuracy:', trainScore[0], testScore[0])
 
         return self.xTrain.shape[0], predictions
