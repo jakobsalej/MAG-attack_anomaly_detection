@@ -7,6 +7,7 @@ from sklearn.preprocessing import LabelEncoder, scale, StandardScaler
 class DataPreparation:
     def __init__(self, path):
         self.data = pd.read_csv(path)
+        self.normalityMapping = None
 
     def print(self):
         print(self.data.describe())
@@ -34,9 +35,20 @@ class DataPreparation:
         self.data = self.data.drop(columns=['timestamp'])
 
         # apply label encoding
-        # use label enconding on all columns except column 'value'
-        cols = [col for col in self.data.columns if col not in ['value']]
+        # use label enconding on all columns except column 'value' and 'normality'
+        cols = [col for col in self.data.columns if col not in [
+            'value', 'normality']]
         self.data[cols] = self.data[cols].apply(LabelEncoder().fit_transform)
+
+        # seperatly use label encoding on 'normality', so we can get mappings
+        le = LabelEncoder()
+        le.fit(self.data['normality'])
+        self.data['normality'] = le.transform(self.data['normality'])
+        self.normalityMapping = dict(
+            zip(le.transform(le.classes_), le.classes_))
+
+    def getNormalityMapping(self):
+        return self.normalityMapping
 
     def returnData(self, fraction=1):
         # return fraction of all data (or all, if fraction is 1) randomly

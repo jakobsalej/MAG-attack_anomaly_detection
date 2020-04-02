@@ -105,18 +105,22 @@ if __name__ == '__main__':
     # create pandas dataframes
     trainDF = pd.DataFrame(data=trainScores)
     testDF = pd.DataFrame(data=testScores)
-    dataInfoDF = pd.DataFrame(data=dataInfo)
-    fullTrainDF = pd.DataFrame(data=fullTrain)
-    fullTestDF = pd.DataFrame(data=fullTest)
+    fullTrainDF = pd.DataFrame(data=fullTrain, index=[
+                               'accuracy', 'std', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'])
+    fullTestDF = pd.DataFrame(data=fullTest, index=[
+                              'accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'])
+
+    # data info where we map class indexes back to their labels
+    normalityMapping = dp.getNormalityMapping()
+    normalityClasses = [normalityMapping[index] for index in normalityMapping]
+    # last row is sum of all classes
+    rowLabels = normalityClasses.append('sum')
+    dataInfoDF = pd.DataFrame(data=dataInfo, index=normalityClasses)
 
     # save to csv
     dataInfoDF.to_csv(dirName + '/data_info.csv')
     fullTrainDF.to_csv(dirName + '/train_results.csv')
     fullTestDF.to_csv(dirName + '/test_results.csv')
 
-    # print(trainDF)
-    # print(dataInfoDF)
-    # print(fullTrainDF)
-
     # save plots (to also draw them, pass draw=True as param)
-    plotResults(trainDF, testDF)
+    plotResults(trainDF, testDF, draw=False)
