@@ -56,12 +56,12 @@ def createDir(name=datetime.now().strftime("%d-%m-%Y (%H:%M:%S)")):
 if __name__ == '__main__':
     # select dataset sizes and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
     # set both to None to use default values
-    selectedSizes = [0.2, 0.4]
-    selectedAlgorithms = ['dt', 'rf']
+    selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
+    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf']
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
-    dirName = createDir()
+    dirName = createDir('all_but_ANN')
 
     # analyze and preprocess data
     dp = DataPreparation('data/mainSimulationAccessTraces.csv')

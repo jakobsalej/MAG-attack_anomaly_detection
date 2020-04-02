@@ -9,8 +9,8 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.preprocessing import scale, StandardScaler
 
-from keras.wrappers.scikit_learn import KerasClassifier
-from ann import ANN
+# from keras.wrappers.scikit_learn import KerasClassifier
+# from ann import ANN
 
 
 class DataAnalysis:
@@ -81,11 +81,11 @@ class DataAnalysis:
     def RandomForest(self, nEstimators=100):
         return RandomForestClassifier(n_estimators=nEstimators, n_jobs=-1)
 
-    def ANN(self, epochs=10):
-        ann = ANN()
-        estimator = KerasClassifier(
-            build_fn=ann.getModel, epochs=epochs, verbose=1)
-        return estimator
+    # def ANN(self, epochs=10):
+    #     ann = ANN()
+    #     estimator = KerasClassifier(
+    #         build_fn=ann.getModel, epochs=epochs, verbose=1)
+    #     return estimator
 
     def predict(self, model, algName):
         print('\n -->', algName, ':')
@@ -124,7 +124,7 @@ class DataAnalysis:
         svm = self.SVM()
         dt = self.DecisionTree()
         rf = self.RandomForest()
-        ann = self.ANN(epochs=5)
+        # ann = self.ANN(epochs=5)
 
         # available algorithms ([name, implementation])
         algorithms = {
@@ -132,7 +132,7 @@ class DataAnalysis:
             'svm': ['SVM', svm],
             'dt': ['Decision Tree', dt],
             'rf': ['Random Forest', rf],
-            'ann': ['ANN', ann],
+            # 'ann': ['ANN', ann],
         }
 
         predictions = {}
