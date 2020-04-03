@@ -56,12 +56,12 @@ def createDir(name=datetime.now().strftime("%d-%m-%Y (%H:%M:%S)")):
 if __name__ == '__main__':
     # select dataset sizes and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
     # set both to None to use default values
-    selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
-    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf']
+    selectedSizes = [0.2, 0.4]
+    selectedAlgorithms = ['dt', 'rf']
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
-    dirName = createDir('all_but_ANN')
+    dirName = createDir()
 
     # analyze and preprocess data
     dp = DataPreparation('data/mainSimulationAccessTraces.csv')
@@ -82,45 +82,54 @@ if __name__ == '__main__':
         # get data characteristics for current dataset size
         dataInfo[datasetSize] = da.getDataCharacteristics()
 
-        noOfSamples, predictions, fullTrainScores, fullTestScores = da.getScores(
+        # get prediction accuracy
+        noOfSamples, predictions = da.getScores(
             selectedAlgorithms) if selectedAlgorithms else da.getScores()
-
-        # add scores
-        fullTrain[datasetSize] = fullTrainScores
-        fullTest[datasetSize] = fullTestScores
 
         # add no. of samples to dict for plotting
         trainScores['Samples'].append(noOfSamples)
         testScores['Samples'].append(noOfSamples)
 
-        # add accuracies for each algorithm for plotting
         for algName in predictions:
+            (train, test) = predictions[algName]
+
+            # add all scores for .csv
+            if algName not in fullTrain:
+                fullTrain[algName] = {}
+                fullTest[algName] = {}
+
+            fullTrain[algName][datasetSize] = train
+            fullTest[algName][datasetSize] = test
+
+            # add accuracy of each algorithm for plotting
             if algName in trainScores:
-                trainScores[algName].append(predictions[algName][0])
-                testScores[algName].append(predictions[algName][1])
+                trainScores[algName].append(train[0])
+                testScores[algName].append(test[0])
             else:
-                trainScores[algName] = [predictions[algName][0]]
-                testScores[algName] = [predictions[algName][1]]
+                trainScores[algName] = [train[0]]
+                testScores[algName] = [test[0]]
 
-    # create pandas dataframes
-    trainDF = pd.DataFrame(data=trainScores)
-    testDF = pd.DataFrame(data=testScores)
-    fullTrainDF = pd.DataFrame(data=fullTrain, index=[
-                               'accuracy', 'std', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'])
-    fullTestDF = pd.DataFrame(data=fullTest, index=[
-                              'accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'])
+    # save scores of all used algorithms to .csv
+    for alg in fullTrain:
+        fullTrainDF = pd.DataFrame(data=fullTrain[alg], index=[
+            'accuracy', 'std', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'])
+        fullTestDF = pd.DataFrame(data=fullTest[alg], index=[
+            'accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'])
 
-    # data info where we map class indexes back to their labels
+        fullTrainDF.to_csv(dirName + '/train_results_' + alg + '.csv')
+        fullTestDF.to_csv(dirName + '/test_results_' + alg + '.csv')
+
+    # data info
+    # map class indexes back to their labels
     normalityMapping = dp.getNormalityMapping()
     normalityClasses = [normalityMapping[index] for index in normalityMapping]
     # last row is sum of all classes
     rowLabels = normalityClasses.append('sum')
     dataInfoDF = pd.DataFrame(data=dataInfo, index=normalityClasses)
-
     # save to csv
     dataInfoDF.to_csv(dirName + '/data_info.csv')
-    fullTrainDF.to_csv(dirName + '/train_results.csv')
-    fullTestDF.to_csv(dirName + '/test_results.csv')
 
     # save plots (to also draw them, pass draw=True as param)
+    trainDF = pd.DataFrame(data=trainScores)
+    testDF = pd.DataFrame(data=testScores)
     plotResults(trainDF, testDF, draw=False)
