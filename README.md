@@ -7,7 +7,7 @@ Repeat findings from article "Attack and anomaly detection in IoT sensors in IoT
 First install all dependencies
 
 ```bash
-pip install requirements.txt
+pip3 install -r requirements.txt
 ```
 
 To get results and plots
