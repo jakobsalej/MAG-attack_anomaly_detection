@@ -104,7 +104,7 @@ class DataAnalysis:
         svm = algs.SVM()
         dt = algs.DecisionTree()
         rf = algs.RandomForest()
-        # ann = algs.ANN(epochs=5)
+        ann = algs.ANN(epochs=5)
 
         # available algorithms ([name, implementation])
         algorithms = {
@@ -112,7 +112,7 @@ class DataAnalysis:
             'svm': ['SVM', svm],
             'dt': ['Decision Tree', dt],
             'rf': ['Random Forest', rf],
-            # 'ann': ['ANN', ann],
+            'ann': ['ANN', ann],
         }
 
         predictions = {}
