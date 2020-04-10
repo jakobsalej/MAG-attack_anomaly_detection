@@ -22,8 +22,8 @@ python3 src/main.py
 
 There are two modes available.
 MODE:
-⋅⋅* 0 = take percentage of all data, then split it into train (80%) and test (20%) set
-⋅⋅* 1 = split data into train / test set first and use the same 20% of ALL data as test set for different training sets
+* 0 : take percentage of all data, then split it into train (80%) and test (20%) set
+* 1 :  split data into train / test set first and use the same 20% of ALL data as test set for different training sets
 
 ```python
 mode = 1
