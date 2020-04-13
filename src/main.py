@@ -183,12 +183,11 @@ if __name__ == '__main__':
     # MODE:
     # 0 = take percentage of all data, then split it into train (80%) / test (20%)
     # 1 = split data into train / test first (use the same 20% of ALL data as test set for all training sets)
-    mode = 1
+    mode = 0
 
     # select dataset sizes and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
-    # set both to None to use default values
-    selectedSizes = [0.2, 0.4]
-    selectedAlgorithms = ['dt', 'rf']
+    selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
+    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
 
     # set number of repetitions and their respective random generator seeds
     randomSeeds = [20, 30, 40]

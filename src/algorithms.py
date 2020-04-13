@@ -26,5 +26,5 @@ class Algorithms:
     def ANN(self, epochs=10):
         ann = ANN()
         estimator = KerasClassifier(
-            build_fn=ann.getModel, epochs=epochs, verbose=1)
+            build_fn=ann.getModel, epochs=epochs, verbose=self.verbose)
         return estimator
