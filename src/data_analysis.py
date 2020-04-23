@@ -93,6 +93,7 @@ class DataAnalysis:
 
         testScores = [acc, balancedAcc, f1, precision, recall]
 
+        print('### Number of test samples:', xTest.shape[0])
         print('Testing set:', testScores)
         print('Unique predicted values:', np.unique(yPredicted))
 
@@ -104,7 +105,7 @@ class DataAnalysis:
         svm = algs.SVM()
         dt = algs.DecisionTree()
         rf = algs.RandomForest()
-        ann = algs.ANN(epochs=5)
+        # ann = algs.ANN(epochs=5)
 
         # available algorithms ([name, implementation])
         algorithms = {
@@ -112,7 +113,7 @@ class DataAnalysis:
             'svm': ['SVM', svm],
             'dt': ['Decision Tree', dt],
             'rf': ['Random Forest', rf],
-            'ann': ['ANN', ann],
+            # 'ann': ['ANN', ann],
         }
 
         predictions = {}
@@ -156,6 +157,10 @@ class DataAnalysis:
             # append scores of current run
             trainScoresAll.append(trainScores)
             testScoresAll.append(testScores)
+
+            # if train size is 1, there is no point in repeating and calculating averages, as data is always the same
+            if trainSize == 1:
+                break
 
         # return number of samples in training set, average scores of all runs (train / test)
         return noOfSamples, np.average(np.array(trainScoresAll), axis=0).tolist(), np.average(np.array(testScoresAll), axis=0).tolist()

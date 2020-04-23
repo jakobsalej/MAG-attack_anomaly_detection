@@ -45,12 +45,12 @@ def plotResults(dirName, trainScores, testScores, draw=False):
         plt.show()
 
 
-def createDir(name=datetime.now().strftime("%d-%m-%Y (%H:%M:%S)")):
+def createDir(name=datetime.now().strftime("%d-%m-%Y (%H-%M-%S)")):
     resFolderName = 'results'
     try:
         # check if results folder exists already - if not, create it
-        if not os.path.exists(resFolderName):
-            os.mkdir(resFolderName)
+        if not os.path.exists('../' + resFolderName):
+            os.mkdir('../' + resFolderName)
 
         # create new folder for results from this run
         os.mkdir(resFolderName + '/' + name)
@@ -183,11 +183,11 @@ if __name__ == '__main__':
     # MODE:
     # 0 = take percentage of all data, then split it into train (80%) / test (20%)
     # 1 = split data into train / test first (use the same 20% of ALL data as test set for all training sets)
-    mode = 0
+    mode = 1
 
     # select dataset sizes and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
-    selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
-    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    selectedSizes = [0.2, 0.4]
+    selectedAlgorithms = ['dt', 'rf']
 
     # set number of repetitions and their respective random generator seeds
     randomSeeds = [20, 30, 40]
@@ -200,7 +200,7 @@ if __name__ == '__main__':
     testScores = {'Samples': []}     # scores for plotting
 
     # clean and preprocess data
-    dp = DataPreparation('data/mainSimulationAccessTraces.csv')
+    dp = DataPreparation('../data/mainSimulationAccessTraces.csv')
     dp.prepareData()
 
     # run predictions
