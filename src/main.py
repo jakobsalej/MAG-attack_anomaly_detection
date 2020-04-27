@@ -10,7 +10,7 @@ import pandas as pd
 import seaborn as sns
 
 
-def plotResults(dirName, trainScores, testScores, draw=False):
+def plotResults(trainScores, testScores, draw=False):
     # plot results
     sns.set()
 
@@ -53,14 +53,24 @@ def createDir(name=datetime.now().strftime("%d-%m-%Y (%H-%M-%S)")):
             os.mkdir('../' + resFolderName)
 
         # create new folder for results from this run
-        os.mkdir(resFolderName + '/' + name)
-        return resFolderName + '/' + name
+        os.mkdir('../' + resFolderName + '/' + name)
+        return '../' + resFolderName + '/' + name
     except FileExistsError:
         print("Directory ", name,  " already exists")
         return None
 
 
-def saveScoresToCSV(dirName, fullTrain, fullTest):
+def saveData(data, fileName, folder='datasets'):
+    try:
+        if not os.path.exists(f'{dirName}/{folder}'):
+            os.mkdir(f'{dirName}/{folder}')
+
+        data.to_csv(f'{dirName}/{folder}/{fileName}.csv')
+    except:
+        print("Something went wrong")
+
+
+def saveScoresToCSV(fullTrain, fullTest):
     for alg in fullTrain:
         fullTrainDF = pd.DataFrame(data=fullTrain[alg], index=[
             'accuracy', 'std', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'])
@@ -71,7 +81,7 @@ def saveScoresToCSV(dirName, fullTrain, fullTest):
         fullTestDF.to_csv(dirName + '/test_results_' + alg + '.csv')
 
 
-def saveDataInfoToCSV(dirName, dataInfo):
+def saveDataInfoToCSV(dataInfo):
     # map class indexes back to their labels
     normalityMapping = dp.getNormalityMapping()
     normalityClasses = [normalityMapping[index] for index in normalityMapping]
@@ -107,13 +117,14 @@ def savePredictionScores(noOfSamples, predictions, datasetSize):
             testScores[algName] = [test[0]]
 
 
-def normalMode(dirName):
-    da = DataAnalysis()
+def normalMode():
+    da = DataAnalysis(dirName=dirName)
 
     # Run predictions
     for datasetSize in (selectedSizes or [0.2, 0.4, 0.6, 0.8, 1]):
         # get the percentage of all data
         sampleData = dp.returnData(datasetSize, randomSeed=10)
+        saveData(sampleData, 'AD_dataset')
 
         # split data into X and y
         X, y = da.splitXY(sampleData)
@@ -133,16 +144,19 @@ def normalMode(dirName):
         savePredictionScores(noOfSamples, predictions, datasetSize)
 
 
-def splitDataFirstMode(dirName):
+def splitDataFirstMode():
     # use all available data
     sampleData = dp.returnData(1, randomSeed=10)
+    saveData(sampleData, 'AD_dataset')
 
     # split data into X and y
-    da = DataAnalysis()
+    da = DataAnalysis(dirName=dirName)
     X, y = da.splitXY(sampleData)
 
     # split data into training (80%) and testing (20%) set
     xTrain, xTest, yTrain, yTest = da.splitTrainTest(X, y, trainSize=0.8)
+    saveData(xTrain.assign(normality=yTrain.values), 'AD_set_train')
+    saveData(xTest.assign(normality=yTest.values), 'AD_set_test')
 
     # get data characteristics for current dataset size
     dataInfo[1] = da.getDataCharacteristics(yTrain, yTest)
@@ -158,25 +172,23 @@ def splitDataFirstMode(dirName):
 
 
 def main():
-    # create new directory for results of this run
-    # name of the folder can be passed as param (default name is timestamp)
-    dirName = createDir()
     if not dirName:
         return -1
 
+    # run the predictions in the selected mode
     if mode == 0:
-        normalMode(dirName)
+        normalMode()
     elif mode == 1:
-        splitDataFirstMode(dirName)
+        splitDataFirstMode()
 
     # save scores of all used algorithms to .csv
-    saveScoresToCSV(dirName, fullTrain, fullTest)
+    saveScoresToCSV(fullTrain, fullTest)
 
     # save data info to .csv
-    saveDataInfoToCSV(dirName, dataInfo)
+    saveDataInfoToCSV(dataInfo)
 
     # save plots (to also draw them, pass draw=True as param)
-    plotResults(dirName, trainScores, testScores, draw=False)
+    plotResults(trainScores, testScores, draw=False)
 
 
 if __name__ == '__main__':
@@ -186,11 +198,15 @@ if __name__ == '__main__':
     mode = 1
 
     # select dataset sizes and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
-    selectedSizes = [0.2, 0.4]
-    selectedAlgorithms = ['dt', 'rf']
+    selectedSizes = [0.2, 0.4, 0.6]
+    selectedAlgorithms = ['dt', 'svm']
 
     # set number of repetitions and their respective random generator seeds
-    randomSeeds = [20, 30, 40]
+    randomSeeds = [20]
+
+    # create new directory for results of this run
+    # name of the folder can be passed as param (default name is timestamp)
+    dirName = createDir()
 
     # init dicts to hold data
     dataInfo = {}

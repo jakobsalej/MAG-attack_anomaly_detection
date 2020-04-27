@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pandas as pd
 
@@ -9,9 +11,19 @@ from algorithms import Algorithms
 
 
 class DataAnalysis:
-    def __init__(self, verbose=0):
+    def __init__(self, dirName, verbose=0):
         self.predictions = None
         self.verbose = verbose
+        self.dirName = dirName
+
+    def saveData(self, data, fileName, folder='datasets'):
+        try:
+            if not os.path.exists(f'{self.dirName}/{folder}'):
+                os.mkdir(f'{self.dirName}/{folder}')
+
+            data.to_csv(f'{self.dirName}/{folder}/{fileName}.csv')
+        except Exception as exception:
+            print(exception)
 
     def print(self, data):
         print('desc', data.describe())
@@ -34,7 +46,6 @@ class DataAnalysis:
             X, y, test_size=1-trainSize, random_state=randomSeed)
 
         print('### Number of train samples:', xTrain.shape[0])
-
         return xTrain, xTest, yTrain, yTest
 
     def getDataCharacteristics(self, yTrain, yTest):
@@ -68,11 +79,12 @@ class DataAnalysis:
 
         return classesCount
 
-    def predict(self, xTrain, xTest, yTrain, yTest, model):
+    def predict(self, xTrain, xTest, yTrain, yTest, model, fileName):
         # k=5 cross validation on training set
         trainScores = cross_validate(
-            model, xTrain, yTrain, scoring=('accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'), return_train_score=True)
+            model, xTrain, yTrain, scoring=('accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'), return_train_score=True, return_estimator=True)
 
+        estimators = trainScores['estimator']
         trainScores = [trainScores['test_accuracy'].mean(), trainScores['test_accuracy'].std(), trainScores['test_balanced_accuracy'].mean(),
                        trainScores['test_f1_weighted'].mean(), trainScores['test_precision_weighted'].mean(), trainScores['test_recall_weighted'].mean()]
 
@@ -83,6 +95,12 @@ class DataAnalysis:
 
         # predict
         yPredicted = model.predict(xTest)
+
+        # save to .csv
+        self.saveData(xTrain.assign(normality=yTrain.values),
+                      f'AD_set_train{fileName}')
+        self.saveData(xTest.assign(normality=yTest.values, predicted=yPredicted),
+                      f'AD_set_test{fileName}')
 
         # get testing set scores
         acc = accuracy_score(yTest, yPredicted)
@@ -105,7 +123,7 @@ class DataAnalysis:
         svm = algs.SVM()
         dt = algs.DecisionTree()
         rf = algs.RandomForest()
-        # ann = algs.ANN(epochs=5)
+        ann = algs.ANN(epochs=5)
 
         # available algorithms ([name, implementation])
         algorithms = {
@@ -149,7 +167,7 @@ class DataAnalysis:
 
             # get prediction scores
             trainScores, testScores = self.predict(
-                xTrainSmall, xTest, yTrainSmall, yTest, model)
+                xTrainSmall, xTest, yTrainSmall, yTest, model, f'{trainSize * 100:.0f}_{algName}')
 
             # save size of training data
             noOfSamples = xTrainSmall.shape[0]
