@@ -24,7 +24,7 @@ def plotResults(trainScores, testScores, draw=False):
     testResults = test.melt(
         'Samples', var_name='Algorithm', value_name='Accuracy')
 
-    plt.ticklabel_format(style='plain', axis='y')
+    # plt.ticklabel_format(style='plain', axis='y')
 
     # training accuracy
     plt.figure()
