@@ -1,13 +1,15 @@
-from data_analysis import DataAnalysis
-from data_preparation import DataPreparation
-
 from datetime import datetime
 import os
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+
+from data_analysis import DataAnalysis
+from data_preparation import DataPreparation
+
+
+np.set_printoptions(precision=4)
 
 
 def plotResults(trainScores, testScores, draw=False):
@@ -25,20 +27,18 @@ def plotResults(trainScores, testScores, draw=False):
     plt.ticklabel_format(style='plain', axis='y')
 
     # training accuracy
-    plt.figure(1)
+    plt.figure()
     trainingPlot = sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
                                  data=trainResults, legend=True, legend_out=True).set_title('Training set')
 
     # testing accuracy
-    plt.figure(2)
+    plt.figure()
     testingPlot = sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
                                 data=testResults, legend=True, legend_out=True).set_title('Testing set')
 
     # save plot images
-    trainingPlot.get_figure().savefig(dirName + '/training.png')
-    testingPlot.get_figure().savefig(dirName + '/testing.png')
-
-    plt.ticklabel_format(style='plain', axis='y')
+    trainingPlot.get_figure().savefig(f'{dirName}/graphs/training_scores.png')
+    testingPlot.get_figure().savefig(f'{dirName}/graphs/testing_scores.png')
 
     # draw
     if draw:
@@ -49,18 +49,22 @@ def createDir(name=datetime.now().strftime("%d-%m-%Y (%H-%M-%S)")):
     resFolderName = 'results'
     try:
         # check if results folder exists already - if not, create it
-        if not os.path.exists('../' + resFolderName):
-            os.mkdir('../' + resFolderName)
+        if not os.path.exists(f'../{resFolderName}'):
+            os.mkdir(f'../{resFolderName}')
 
         # create new folder for results from this run
-        os.mkdir('../' + resFolderName + '/' + name)
-        return '../' + resFolderName + '/' + name
+        newFolder = f'../{resFolderName}/{name}'
+        os.mkdir(newFolder)
+        os.mkdir(f'{newFolder}/results')
+        os.mkdir(f'{newFolder}/graphs')
+        os.mkdir(f'{newFolder}/datasets')
+        return newFolder
     except FileExistsError:
         print("Directory ", name,  " already exists")
         return None
 
 
-def saveData(data, fileName, folder='datasets'):
+def saveDataset(data, fileName, folder='datasets'):
     try:
         if not os.path.exists(f'{dirName}/{folder}'):
             os.mkdir(f'{dirName}/{folder}')
@@ -77,8 +81,8 @@ def saveScoresToCSV(fullTrain, fullTest):
         fullTestDF = pd.DataFrame(data=fullTest[alg], index=[
             'accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'])
 
-        fullTrainDF.to_csv(dirName + '/train_results_' + alg + '.csv')
-        fullTestDF.to_csv(dirName + '/test_results_' + alg + '.csv')
+        fullTrainDF.to_csv(f'{dirName}/results/train_results_{alg}.csv')
+        fullTestDF.to_csv(f'{dirName}/results/test_results_{alg}.csv')
 
 
 def saveDataInfoToCSV(dataInfo):
@@ -89,7 +93,7 @@ def saveDataInfoToCSV(dataInfo):
     normalityClasses.append('sum')
     dataInfoDF = pd.DataFrame(data=dataInfo, index=normalityClasses)
     # save to csv
-    dataInfoDF.to_csv(dirName + '/data_info.csv')
+    dataInfoDF.to_csv(f'{dirName}/datasets/data_info.csv')
 
 
 def savePredictionScores(noOfSamples, predictions, datasetSize):
@@ -124,7 +128,7 @@ def normalMode():
     for datasetSize in (selectedSizes or [0.2, 0.4, 0.6, 0.8, 1]):
         # get the percentage of all data
         sampleData = dp.returnData(datasetSize, randomSeed=10)
-        saveData(sampleData, 'AD_dataset')
+        saveDataset(sampleData, 'AD_dataset')
 
         # split data into X and y
         X, y = da.splitXY(sampleData)
@@ -147,7 +151,7 @@ def normalMode():
 def splitDataFirstMode():
     # use all available data
     sampleData = dp.returnData(1, randomSeed=10)
-    saveData(sampleData, 'AD_dataset')
+    saveDataset(sampleData, 'AD_dataset')
 
     # split data into X and y
     da = DataAnalysis(dirName=dirName)
@@ -155,8 +159,8 @@ def splitDataFirstMode():
 
     # split data into training (80%) and testing (20%) set
     xTrain, xTest, yTrain, yTest = da.splitTrainTest(X, y, trainSize=0.8)
-    saveData(xTrain.assign(normality=yTrain.values), 'AD_set_train')
-    saveData(xTest.assign(normality=yTest.values), 'AD_set_test')
+    saveDataset(xTrain.assign(normality=yTrain.values), 'AD_set_train')
+    saveDataset(xTest.assign(normality=yTest.values), 'AD_set_test')
 
     # get data characteristics for current dataset size
     dataInfo[1] = da.getDataCharacteristics(yTrain, yTest)
@@ -197,9 +201,9 @@ if __name__ == '__main__':
     # 1 = split data into train / test first (use the same 20% of ALL data as test set for all training sets)
     mode = 1
 
-    # select dataset sizes and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
+    # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
     selectedSizes = [0.2, 0.4, 0.6]
-    selectedAlgorithms = ['dt', 'svm']
+    selectedAlgorithms = ['svm']
 
     # set number of repetitions and their respective random generator seeds
     randomSeeds = [20]

@@ -2,12 +2,15 @@ import os
 
 import numpy as np
 import pandas as pd
-
+import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split, cross_val_score, cross_validate
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score, confusion_matrix, ConfusionMatrixDisplay
 from sklearn.preprocessing import scale, StandardScaler
 
 from algorithms import Algorithms
+
+
+np.set_printoptions(precision=4)
 
 
 class DataAnalysis:
@@ -79,6 +82,20 @@ class DataAnalysis:
 
         return classesCount
 
+    def saveConfusionMatrix(self, yTrue, yPredicted, fileName, saveFig=True):
+        # save to .csv
+        pd.DataFrame(confusion_matrix(yTrue, yPredicted)).to_csv(
+            f'{self.dirName}/results/CM_{fileName}.csv')
+
+        # save graph
+        plt.figure()
+        disp = ConfusionMatrixDisplay(
+            confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize='true'), display_labels=[0, 1, 2, 3, 4, 5, 6, 7])
+        disp = disp.plot(include_values=True, cmap=plt.cm.Blues,
+                         ax=None, xticks_rotation='horizontal')
+        disp.ax_.set_title(fileName)
+        disp.figure_.savefig(f'{self.dirName}/graphs/CM_{fileName}.png')
+
     def predict(self, xTrain, xTest, yTrain, yTest, model, fileName):
         # k=5 cross validation on training set
         trainScores = cross_validate(
@@ -95,6 +112,9 @@ class DataAnalysis:
 
         # predict
         yPredicted = model.predict(xTest)
+
+        # save confusion matrix to .csv
+        self.saveConfusionMatrix(yTest, yPredicted, fileName)
 
         # save to .csv
         self.saveData(xTrain.assign(normality=yTrain.values),
@@ -113,7 +133,7 @@ class DataAnalysis:
 
         print('### Number of test samples:', xTest.shape[0])
         print('Testing set:', testScores)
-        print('Unique predicted values:', np.unique(yPredicted))
+        # print('Unique predicted values:', np.unique(yPredicted))
 
         return trainScores, testScores
 
@@ -131,7 +151,7 @@ class DataAnalysis:
             'svm': ['SVM', svm],
             'dt': ['Decision Tree', dt],
             'rf': ['Random Forest', rf],
-            # 'ann': ['ANN', ann],
+            'ann': ['ANN', ann],
         }
 
         predictions = {}
