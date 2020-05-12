@@ -3,9 +3,11 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+
 from sklearn.model_selection import train_test_split, cross_val_score, cross_validate
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score, confusion_matrix, ConfusionMatrixDisplay
-from sklearn.preprocessing import scale, StandardScaler
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score, confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
+from sklearn.preprocessing import scale, StandardScaler, label_binarize
+from sklearn.multiclass import OneVsRestClassifier
 
 from algorithms import Algorithms
 
@@ -18,12 +20,22 @@ class DataAnalysis:
         self.predictions = None
         self.verbose = verbose
         self.dirName = dirName
+        self.outputClasses = [0, 1, 2, 3, 4, 5, 6, 7]
+
+        # available algorithms ([name, implementation])
+        algs = Algorithms()
+        self.algorithms = {
+            'logReg': ['Logistic Regression', algs.logisticRegression()],
+            'svm': ['SVM', algs.SVM()],
+            'dt': ['Decision Tree', algs.DecisionTree()],
+            'rf': ['Random Forest', algs.RandomForest()],
+            'ann': ['ANN', algs.ANN(epochs=5)],
+        }
 
     def saveData(self, data, fileName, folder='datasets'):
         try:
             if not os.path.exists(f'{self.dirName}/{folder}'):
                 os.mkdir(f'{self.dirName}/{folder}')
-
             data.to_csv(f'{self.dirName}/{folder}/{fileName}.csv')
         except Exception as exception:
             print(exception)
@@ -82,7 +94,7 @@ class DataAnalysis:
 
         return classesCount
 
-    def saveConfusionMatrix(self, yTrue, yPredicted, fileName, saveFig=True):
+    def saveConfusionMatrix(self, yTrue, yPredicted, fileName):
         # save to .csv
         pd.DataFrame(confusion_matrix(yTrue, yPredicted)).to_csv(
             f'{self.dirName}/results/CM_{fileName}.csv')
@@ -90,13 +102,48 @@ class DataAnalysis:
         # save graph
         plt.figure()
         disp = ConfusionMatrixDisplay(
-            confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize='true'), display_labels=[0, 1, 2, 3, 4, 5, 6, 7])
+            confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize='true'), display_labels=self.outputClasses)
         disp = disp.plot(include_values=True, cmap=plt.cm.Blues,
                          ax=None, xticks_rotation='horizontal')
         disp.ax_.set_title(fileName)
         disp.figure_.savefig(f'{self.dirName}/graphs/CM_{fileName}.png')
 
-    def predict(self, xTrain, xTest, yTrain, yTest, model, fileName):
+    def saveROC(self, model, xTrain, yTrain, xTest, yTest, fileName):
+        # Binarize the y
+        yTrain = label_binarize(yTrain, classes=self.outputClasses)
+        yTest = label_binarize(yTest, classes=self.outputClasses)
+        nClasses = yTest.shape[1]
+
+        # Learn to predict each class against the other
+        classifier = OneVsRestClassifier(model)
+        yPredicted = classifier.fit(xTrain, yTrain).predict_proba(xTest)
+
+        # Compute ROC curve and ROC area for each class
+        fpr = dict()
+        tpr = dict()
+        rocAuc = dict()
+        for i in range(nClasses):
+            fpr[i], tpr[i], _ = roc_curve(yTest[:, i], yPredicted[:, i])
+            rocAuc[i] = auc(fpr[i], tpr[i])
+
+        # Plot all ROC curves
+        plt.figure()
+        lw = 2
+        for i in range(nClasses):
+            plt.plot(fpr[i], tpr[i], lw=lw,
+                     label='Class {0} (area = {1:0.2f})'
+                     ''.format(i, rocAuc[i]))
+
+        plt.plot([0, 1], [0, 1], 'k--', lw=lw)
+        plt.xlim([0.0, 1.0])
+        plt.ylim([0.0, 1.05])
+        plt.xlabel('False Positive Rate')
+        plt.ylabel('True Positive Rate')
+        plt.title(fileName)
+        plt.legend(loc="lower right")
+        plt.savefig(f'{self.dirName}/graphs/ROC_{fileName}.png')
+
+    def predict(self, xTrain, xTest, yTrain, yTest, model, fileName, testFileName):
         # k=5 cross validation on training set
         trainScores = cross_validate(
             model, xTrain, yTrain, scoring=('accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'), return_train_score=True, return_estimator=True)
@@ -113,14 +160,15 @@ class DataAnalysis:
         # predict
         yPredicted = model.predict(xTest)
 
+        # save roc graphs
+        self.saveROC(model, xTrain, yTrain, xTest, yTest, fileName)
+
         # save confusion matrix to .csv
         self.saveConfusionMatrix(yTest, yPredicted, fileName)
 
-        # save to .csv
-        self.saveData(xTrain.assign(normality=yTrain.values),
-                      f'AD_set_train{fileName}')
+        # save testing set (with target and predicted values) to .csv
         self.saveData(xTest.assign(normality=yTest.values, predicted=yPredicted),
-                      f'AD_set_test{fileName}')
+                      f'AD_set_test{testFileName}')
 
         # get testing set scores
         acc = accuracy_score(yTest, yPredicted)
@@ -137,57 +185,58 @@ class DataAnalysis:
 
         return trainScores, testScores
 
-    def getScores(self, xTrain, xTest, yTrain, yTest, trainSize=1, randomSeeds=[1, 2, 3, 4, 5], selectedAlgorithms=['logReg', 'svm', 'dt', 'rf', 'ann']):
-        algs = Algorithms()
-        logReg = algs.logisticRegression()
-        svm = algs.SVM()
-        dt = algs.DecisionTree()
-        rf = algs.RandomForest()
-        ann = algs.ANN(epochs=5)
-
-        # available algorithms ([name, implementation])
-        algorithms = {
-            'logReg': ['Logistic Regression', logReg],
-            'svm': ['SVM', svm],
-            'dt': ['Decision Tree', dt],
-            'rf': ['Random Forest', rf],
-            'ann': ['ANN', ann],
-        }
+    def getScores(self, xTrain, xTest, yTrain, yTest, trainSize=1, randomSeeds=[1, 2, 3, 4, 5], selectedAlgorithms=None):
+        # by default, select all algorithms
+        if selectedAlgorithms is None:
+            selectedAlgorithms = self.algorithms.keys()
 
         predictions = {}
 
+        # get scores for each algorithm
         for selected in selectedAlgorithms:
-            [algName, alg] = algorithms[selected]
+            algorithm = self.algorithms[selected]
             noOfSamples, trainScores, testScores = self.calculateAverageScores(
-                xTrain, xTest, yTrain, yTest, alg, algName, trainSize, randomSeeds)
-            predictions[algName] = (trainScores, testScores)
+                xTrain, xTest, yTrain, yTest, algorithm, trainSize, randomSeeds)
+            predictions[algorithm[0]] = (trainScores, testScores)
 
             print('\nAverage train/test accuracy:',
                   trainScores[0], testScores[0], '\n')
 
         return noOfSamples, predictions
 
-    def calculateAverageScores(self, xTrain, xTest, yTrain, yTest, model, algName, trainSize, randomSeeds):
+    def calculateAverageScores(self, xTrain, xTest, yTrain, yTest, algorithm, trainSize, randomSeeds):
         trainScoresAll = []
         testScoresAll = []
         noOfSamples = 0
+
+        [algName, alg] = algorithm
 
         print('\n -->', algName, ':')
 
         for (idx, seed) in enumerate(randomSeeds):
             print('\nRun #' + str(idx + 1))
 
-            # get data subset (if requested train dataset size is smaller than 1, split it again)
-            xTrainSmall = xTrain
-            yTrainSmall = yTrain
+            # if training set for a given size and random seed is not saved yet, generate it and save it
+            fileName = f'AD_set_train{trainSize * 100:.0f}_seed{seed}'
 
-            if trainSize != 1:
+            if trainSize != 1 and not os.path.exists(f'{self.dirName}/datasets/{fileName}.csv'):
+                # generate new training set
+                xTrainSmall, _, yTrainSmall, _ = self.splitTrainTest(
+                    xTrain, yTrain, trainSize=trainSize, randomSeed=seed)
+
+                # save new training set
+                self.saveData(xTrainSmall.assign(
+                    normality=yTrainSmall.values), fileName)
+
+            else:
+                # TODO: read from existing file instead of generating set again
+                # use existing training set
                 xTrainSmall, _, yTrainSmall, _ = self.splitTrainTest(
                     xTrain, yTrain, trainSize=trainSize, randomSeed=seed)
 
             # get prediction scores
             trainScores, testScores = self.predict(
-                xTrainSmall, xTest, yTrainSmall, yTest, model, f'{trainSize * 100:.0f}_{algName}')
+                xTrainSmall, xTest, yTrainSmall, yTest, alg, fileName, f'{trainSize * 100:.0f}_{algName}')
 
             # save size of training data
             noOfSamples = xTrainSmall.shape[0]
