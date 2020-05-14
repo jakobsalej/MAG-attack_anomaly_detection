@@ -100,6 +100,7 @@ class DataAnalysis:
             f'{self.dirName}/results/CM_{fileName}.csv')
 
         # save graph
+        plt.close('all')
         plt.figure()
         disp = ConfusionMatrixDisplay(
             confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize='true'), display_labels=self.outputClasses)
@@ -127,6 +128,7 @@ class DataAnalysis:
             rocAuc[i] = auc(fpr[i], tpr[i])
 
         # Plot all ROC curves
+        plt.close('all')
         plt.figure()
         lw = 2
         for i in range(nClasses):
@@ -161,10 +163,10 @@ class DataAnalysis:
         yPredicted = model.predict(xTest)
 
         # save roc graphs
-        self.saveROC(model, xTrain, yTrain, xTest, yTest, fileName)
+        self.saveROC(model, xTrain, yTrain, xTest, yTest, testFileName)
 
         # save confusion matrix to .csv
-        self.saveConfusionMatrix(yTest, yPredicted, fileName)
+        self.saveConfusionMatrix(yTest, yPredicted, testFileName)
 
         # save testing set (with target and predicted values) to .csv
         self.saveData(xTest.assign(normality=yTest.values, predicted=yPredicted),

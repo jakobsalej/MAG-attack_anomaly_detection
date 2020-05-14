@@ -27,6 +27,7 @@ def plotResults(trainScores, testScores, draw=False):
     # plt.ticklabel_format(style='plain', axis='y')
 
     # training accuracy
+    plt.close('all')
     plt.figure()
     trainingPlot = sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
                                  data=trainResults, legend=True, legend_out=True).set_title('Training set')
@@ -202,11 +203,11 @@ if __name__ == '__main__':
     mode = 1
 
     # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
-    selectedSizes = [0.2, 0.4, 0.6]
-    selectedAlgorithms = ['svm']
+    selectedSizes = [0.99999999]
+    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf']
 
     # set number of repetitions and their respective random generator seeds
-    randomSeeds = [20]
+    randomSeeds = [42]
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
