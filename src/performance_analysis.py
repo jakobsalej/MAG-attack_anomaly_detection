@@ -27,12 +27,15 @@ class PerformanceAnalysis:
     def measureFitTime(self, alg, X, y, repeats=5):
         fastestRun = None
 
+        print(X.shape, alg)
+        print(X)
+
         for i in range(repeats):
             model = self.algorithms[alg][1]
             startTime = time.time()
             model.fit(X, y)
             duration = time.time() - startTime
-            # print(duration)
+            print(duration)
 
             if fastestRun is None or duration < fastestRun:
                 fastestRun = duration
@@ -42,6 +45,8 @@ class PerformanceAnalysis:
     def measurePredictTime(self, alg, trainX, trainY, X, y, repeats=5):
         fastestRun = None
         model = self.algorithms[alg][1]
+
+        print(trainX.shape, X.shape)
         model.fit(trainX, trainY)
 
         for i in range(repeats):
@@ -56,7 +61,8 @@ class PerformanceAnalysis:
         return fastestRun
 
     def readFile(self, path):
-        data = pd.read_csv(f'{self.dirName}/{path}')
+        data = pd.read_csv(f'{self.dirName}/{path}', index_col=0)
+        print(data.columns.values)
         X = data.drop('normality', axis=1)
         y = data['normality']
         return X, y
@@ -75,10 +81,11 @@ class PerformanceAnalysis:
 if __name__ == '__main__':
     pa = PerformanceAnalysis('../performance')
     trainX, trainY = pa.readFile('AD_set_train.csv')
-    testX, testY = pa.readFile('AD_set_train.csv')
+    testX, testY = pa.readFile('AD_set_test.csv')
 
     # selected algs
     algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    # algs = ['ann']
     fitTimes = {}
     predictTimes = {}
 
