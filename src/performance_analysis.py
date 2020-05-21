@@ -61,11 +61,15 @@ class PerformanceAnalysis:
         y = data['normality']
         return X, y
 
-    def savePlot(self, data, title, fileName):
+    def savePlot(self, data, fileName):
         sns.set()
         plt.figure()
-        plot = sns.barplot(data=data).set_title(title)
+        plot = sns.barplot(data=data)
+        plot.set(xlabel='Algorithms', ylabel='Time [s]')
         plot.get_figure().savefig(f'{self.dirName}/{fileName}.png')
+
+    def saveDataToCSV(self, data, fileName):
+        fitTimesDF.to_csv(f'{self.dirName}/{fileName}.csv')
 
 
 if __name__ == '__main__':
@@ -74,7 +78,7 @@ if __name__ == '__main__':
     testX, testY = pa.readFile('AD_set_train.csv')
 
     # selected algs
-    algs = ['logReg', 'svm', 'dt', 'rf']
+    algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
     fitTimes = {}
     predictTimes = {}
 
@@ -86,10 +90,13 @@ if __name__ == '__main__':
         predictTimes[alg] = pa.measurePredictTime(
             alg, trainX, trainY, testX, testY)
 
-    # plot results
     fitTimesDF = pd.Series(fitTimes).to_frame('Fit Times')
     predictTimesDF = pd.Series(predictTimes).to_frame('Predict Times')
-    pa.savePlot(fitTimesDF.transpose(),
-                'Time to fit on training data [s]', 'fit_time')
-    pa.savePlot(predictTimesDF.transpose(),
-                'Time to predict test data [s]', 'predict_time')
+
+    # save times to .csv
+    pa.saveDataToCSV(fitTimesDF, 'fit_time')
+    pa.saveDataToCSV(predictTimesDF, 'predict_time')
+
+    # plot results
+    pa.savePlot(fitTimesDF.transpose(), 'fit_time')
+    pa.savePlot(predictTimesDF.transpose(), 'predict_time')
