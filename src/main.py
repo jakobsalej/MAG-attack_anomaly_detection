@@ -203,8 +203,8 @@ if __name__ == '__main__':
     mode = 1
 
     # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
-    selectedSizes = [0.99999999]
-    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf']
+    selectedSizes = [0.2, 0.4, 0.6, 0.8, 0.99999999]
+    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
 
     # set number of repetitions and their respective random generator seeds
     randomSeeds = [42]
