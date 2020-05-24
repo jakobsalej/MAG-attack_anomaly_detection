@@ -46,7 +46,7 @@ def plotResults(trainScores, testScores, draw=False):
         plt.show()
 
 
-def createDir(name=datetime.now().strftime("%d-%m-%Y (%H-%M-%S)")):
+def createDir(name=datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")):
     resFolderName = 'results'
     try:
         # check if results folder exists already - if not, create it

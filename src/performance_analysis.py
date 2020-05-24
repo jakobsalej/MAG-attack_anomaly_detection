@@ -1,4 +1,7 @@
 import time
+from datetime import datetime
+import os
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -8,11 +11,15 @@ from algorithms import Algorithms
 
 
 class PerformanceAnalysis:
-    def __init__(self, dirName, verbose=0):
+    def __init__(self, dirName, resultsDir=datetime.now().strftime("%d-%m-%Y(%H-%M-%S)"), verbose=0):
         self.predictions = None
         self.verbose = verbose
         self.dirName = dirName
+        self.resultsDirName = f'{dirName}/{resultsDir}'
         self.outputClasses = [0, 1, 2, 3, 4, 5, 6, 7]
+
+        if not os.path.exists(self.resultsDirName):
+            os.mkdir(self.resultsDirName)
 
         # available algorithms ([name, implementation])
         algs = Algorithms()
@@ -27,15 +34,12 @@ class PerformanceAnalysis:
     def measureFitTime(self, alg, X, y, repeats=5):
         fastestRun = None
 
-        print(X.shape, alg)
-        print(X)
-
         for i in range(repeats):
             model = self.algorithms[alg][1]
             startTime = time.time()
             model.fit(X, y)
             duration = time.time() - startTime
-            print(duration)
+            print(f'{alg} train, run {i+1}: {duration}s')
 
             if fastestRun is None or duration < fastestRun:
                 fastestRun = duration
@@ -45,15 +49,13 @@ class PerformanceAnalysis:
     def measurePredictTime(self, alg, trainX, trainY, X, y, repeats=5):
         fastestRun = None
         model = self.algorithms[alg][1]
-
-        print(trainX.shape, X.shape)
         model.fit(trainX, trainY)
 
         for i in range(repeats):
             startTime = time.time()
             yPredicted = model.predict(X)
             duration = time.time() - startTime
-            # print(duration)
+            print(f'{alg} predict, run {i+1}: {duration}s')
 
             if fastestRun is None or duration < fastestRun:
                 fastestRun = duration
@@ -62,7 +64,6 @@ class PerformanceAnalysis:
 
     def readFile(self, path):
         data = pd.read_csv(f'{self.dirName}/{path}', index_col=0)
-        print(data.columns.values)
         X = data.drop('normality', axis=1)
         y = data['normality']
         return X, y
@@ -72,33 +73,43 @@ class PerformanceAnalysis:
         plt.figure()
         plot = sns.barplot(data=data)
         plot.set(xlabel='Algorithms', ylabel='Time [s]')
-        plot.get_figure().savefig(f'{self.dirName}/{fileName}.png')
+        plot.get_figure().savefig(f'{self.resultsDirName}/{fileName}.png')
 
     def saveDataToCSV(self, data, fileName):
-        fitTimesDF.to_csv(f'{self.dirName}/{fileName}.csv')
+        data.to_csv(f'{self.resultsDirName}/{fileName}.csv')
 
 
 if __name__ == '__main__':
     pa = PerformanceAnalysis('../performance')
-    trainX, trainY = pa.readFile('AD_set_train.csv')
-    testX, testY = pa.readFile('AD_set_test.csv')
+    
+    # load testing set
+    testX, testY = pa.readFile('data/AD_set_test.csv')
 
-    # selected algs
+    # selected algs & sizes
     algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
-    # algs = ['ann']
+    datasetSizes = [20, 40, 60, 80, 100]
+    
     fitTimes = {}
     predictTimes = {}
 
     for alg in algs:
-        # measure train time
-        fitTimes[alg] = pa.measureFitTime(alg, trainX, trainY)
+        fitTimes[alg] = {}
+        predictTimes[alg] = {}
 
-        # measure predict time
-        predictTimes[alg] = pa.measurePredictTime(
-            alg, trainX, trainY, testX, testY)
+        for size in datasetSizes:
+            # load training set (testing set is always the same)
+            trainX, trainY = pa.readFile(f'data/AD_set_train{size}_seed42.csv')
 
-    fitTimesDF = pd.Series(fitTimes).to_frame('Fit Times')
-    predictTimesDF = pd.Series(predictTimes).to_frame('Predict Times')
+            # measure train time
+            fitTimes[alg][size] = pa.measureFitTime(alg, trainX, trainY)
+
+            # measure predict time
+            predictTimes[alg][size] = pa.measurePredictTime(
+                alg, trainX, trainY, testX, testY)
+    
+    fitTimesDF = pd.DataFrame(fitTimes)
+    predictTimesDF = pd.DataFrame(predictTimes)
+    print(fitTimesDF)
 
     # save times to .csv
     pa.saveDataToCSV(fitTimesDF, 'fit_time')
@@ -107,3 +118,5 @@ if __name__ == '__main__':
     # plot results
     pa.savePlot(fitTimesDF.transpose(), 'fit_time')
     pa.savePlot(predictTimesDF.transpose(), 'predict_time')
+    # pa.savePlot(fitTimesDF, 'fit_time')
+    # pa.savePlot(predictTimesDF, 'predict_time')
