@@ -16,7 +16,6 @@ class PerformanceAnalysis:
         self.verbose = verbose
         self.dirName = dirName
         self.resultsDirName = f'{dirName}/{resultsDir}'
-        self.outputClasses = [0, 1, 2, 3, 4, 5, 6, 7]
 
         if not os.path.exists(self.resultsDirName):
             os.mkdir(self.resultsDirName)
@@ -87,7 +86,7 @@ if __name__ == '__main__':
 
     # selected algs & sizes
     algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
-    datasetSizes = [20, 40, 60, 80, 100]
+    datasetSizes = [20]
     
     fitTimes = {}
     predictTimes = {}
