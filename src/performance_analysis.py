@@ -108,7 +108,6 @@ if __name__ == '__main__':
     
     fitTimesDF = pd.DataFrame(fitTimes)
     predictTimesDF = pd.DataFrame(predictTimes)
-    print(fitTimesDF)
 
     # save times to .csv
     pa.saveDataToCSV(fitTimesDF, 'fit_time')

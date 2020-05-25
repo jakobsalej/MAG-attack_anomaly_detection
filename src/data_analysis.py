@@ -106,7 +106,7 @@ class DataAnalysis:
             confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize='true'), display_labels=self.outputClasses)
         disp = disp.plot(include_values=True, cmap=plt.cm.Blues,
                          ax=None, xticks_rotation='horizontal')
-        disp.ax_.set_title(fileName)
+        # disp.ax_.set_title(fileName)
         disp.figure_.savefig(f'{self.dirName}/graphs/CM_{fileName}.png')
 
     def saveROC(self, model, xTrain, yTrain, xTest, yTest, fileName):
@@ -141,7 +141,7 @@ class DataAnalysis:
         plt.ylim([0.0, 1.05])
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
-        plt.title(fileName)
+        # plt.title(fileName)
         plt.legend(loc="lower right")
         plt.savefig(f'{self.dirName}/graphs/ROC_{fileName}.png')
 
