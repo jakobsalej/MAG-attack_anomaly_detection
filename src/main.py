@@ -19,6 +19,10 @@ def plotResults(trainScores, testScores, draw=False):
     train = pd.DataFrame(data=trainScores)
     test = pd.DataFrame(data=testScores)
 
+    # save to .csv
+    train.to_csv(f'{dirName}/results/train_scores.csv')
+    test.to_csv(f'{dirName}/results/test_scores.csv')
+
     trainResults = train.melt(
         'Samples', var_name='Algorithm', value_name='Accuracy')
     testResults = test.melt(
@@ -30,12 +34,12 @@ def plotResults(trainScores, testScores, draw=False):
     plt.close('all')
     plt.figure()
     trainingPlot = sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
-                                 data=trainResults, legend=True, legend_out=True).set_title('Training set')
+                                 data=trainResults, legend=True, legend_out=True)
 
     # testing accuracy
     plt.figure()
     testingPlot = sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
-                                data=testResults, legend=True, legend_out=True).set_title('Testing set')
+                                data=testResults, legend=True, legend_out=True)
 
     # save plot images
     trainingPlot.get_figure().savefig(f'{dirName}/graphs/training_scores.png')
