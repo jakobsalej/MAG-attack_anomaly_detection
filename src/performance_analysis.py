@@ -86,7 +86,7 @@ if __name__ == '__main__':
 
     # selected algs & sizes
     algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
-    datasetSizes = [20]
+    datasetSizes = [20, 40, 60, 80, 100]
     
     fitTimes = {}
     predictTimes = {}
