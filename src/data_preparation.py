@@ -50,7 +50,7 @@ class DataPreparation:
     def getNormalityMapping(self):
         return self.normalityMapping
 
-    def returnData(self, fraction=1, randomSeed=1):
+    def returnData(self, fraction=1, randomSeed=42):
         # return fraction of all data (or all, if fraction is 1) randomly
         # use random_state to ensure the reproducibility of the examples
         return self.data.sample(frac=fraction, random_state=randomSeed)
