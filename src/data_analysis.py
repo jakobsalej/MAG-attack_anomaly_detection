@@ -57,6 +57,9 @@ class DataAnalysis:
 
     def splitTrainTest(self, X, y, trainSize=0.8, randomSeed=1):
         # split data into training and testing set
+        if trainSize == 1:
+            return X, None, y, None
+
         xTrain, xTest, yTrain, yTest = train_test_split(
             X, y, test_size=1-trainSize, random_state=randomSeed)
 
@@ -106,7 +109,7 @@ class DataAnalysis:
             confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize='true'), display_labels=self.outputClasses)
         disp = disp.plot(include_values=True, cmap=plt.cm.Blues,
                          ax=None, xticks_rotation='horizontal')
-        # disp.ax_.set_title(fileName)
+        disp.ax_.set_title(f'CM_{fileName}')
         disp.figure_.savefig(f'{self.dirName}/graphs/CM_{fileName}.png')
 
     def saveROC(self, model, xTrain, yTrain, xTest, yTest, fileName):
@@ -141,7 +144,7 @@ class DataAnalysis:
         plt.ylim([0.0, 1.05])
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
-        # plt.title(fileName)
+        plt.title(f'ROC_{fileName}')
         plt.legend(loc="lower right")
         plt.savefig(f'{self.dirName}/graphs/ROC_{fileName}.png')
 
@@ -150,7 +153,7 @@ class DataAnalysis:
         trainScores = cross_validate(
             model, xTrain, yTrain, scoring=('accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'), return_train_score=True, return_estimator=True)
 
-        estimators = trainScores['estimator']
+        # estimators = trainScores['estimator']
         trainScores = [trainScores['test_accuracy'].mean(), trainScores['test_accuracy'].std(), trainScores['test_balanced_accuracy'].mean(),
                        trainScores['test_f1_weighted'].mean(), trainScores['test_precision_weighted'].mean(), trainScores['test_recall_weighted'].mean()]
 
@@ -212,9 +215,9 @@ class DataAnalysis:
         noOfSamples = 0
 
         [algName, alg] = algorithm
-
         print('\n -->', algName, ':')
 
+        # repeat multiple times if different seeds specified
         for (idx, seed) in enumerate(randomSeeds):
             print('\nRun #' + str(idx + 1))
 
@@ -238,10 +241,10 @@ class DataAnalysis:
                     xTrain, _, yTrain, _ = self.splitTrainTest(
                         xTrain, yTrain, trainSize=trainSize, randomSeed=seed)
 
-            else:
-                # keep sets the same
-                # TODO: save datasets?
-                pass
+            elif not os.path.exists(f'{self.dirName}/datasets/{fileName}.csv'):
+                # mode 0, keep sets the same and save them
+                self.saveData(xTrain.assign(
+                    normality=yTrain.values), fileName)
 
             # get prediction scores
             trainScores, testScores = self.predict(

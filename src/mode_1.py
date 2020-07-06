@@ -170,8 +170,8 @@ if __name__ == '__main__':
     # split data into train / test first (use the same 20% of ALL data as test set for all training sets)
 
     # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
-    selectedSizes = [0.2, 0.4, 0.6, 0.8, 0.99999999]
-    selectedAlgorithms = ['logReg', 'dt']
+    selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
+    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
 
     # set number of repetitions and their respective random generator seeds
     randomSeeds = [42]
