@@ -8,6 +8,8 @@ from sklearn.model_selection import train_test_split, cross_val_score, cross_val
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score, confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
 from sklearn.preprocessing import scale, StandardScaler, label_binarize
 from sklearn.multiclass import OneVsRestClassifier
+from sklearn.calibration import CalibratedClassifierCV
+
 
 from algorithms import Algorithms
 
@@ -29,7 +31,7 @@ class DataAnalysis:
             'svm': ['SVM', algs.SVM()],
             'dt': ['Decision Tree', algs.DecisionTree()],
             'rf': ['Random Forest', algs.RandomForest()],
-            'ann': ['ANN', algs.ANN(epochs=5)],
+            # 'ann': ['ANN', algs.ANN(epochs=5)],
         }
 
     def saveData(self, data, fileName, folder='datasets'):
@@ -49,19 +51,32 @@ class DataAnalysis:
         X = data.drop('normality', axis=1)
         y = data['normality']
 
-        # scale X as part of preprocessing
-        xScaled = StandardScaler().fit_transform(X)
-        X = pd.DataFrame(xScaled, columns=X.columns)
+        X = pd.DataFrame(X, columns=X.columns)
 
         return X, y
 
-    def splitTrainTest(self, X, y, trainSize=0.8, randomSeed=1):
+    def splitTrainTest(self, X, y, trainSize=0.8, randomSeed=1, scale=False):
         # split data into training and testing set
         if trainSize == 1:
             return X, None, y, None
 
         xTrain, xTest, yTrain, yTest = train_test_split(
             X, y, test_size=1-trainSize, random_state=randomSeed)
+
+        # scale X as part of preprocessing
+        if scale:
+            # fit Standard Scaler on train data
+            standardScaler = StandardScaler().fit(xTrain)
+
+            # transform xTrain
+            xTrainColumns = xTrain.columns
+            xTrain = standardScaler.transform(xTrain)
+            xTrain = pd.DataFrame(xTrain, columns=xTrainColumns)
+
+            # transform xTest
+            xTestColumns = xTest.columns
+            xTest = standardScaler.transform(xTest)
+            xTest = pd.DataFrame(xTest, columns=xTestColumns)
 
         print('### Number of train samples:', xTrain.shape[0])
         return xTrain, xTest, yTrain, yTest
@@ -150,23 +165,41 @@ class DataAnalysis:
 
     def predict(self, xTrain, xTest, yTrain, yTest, model, fileName, testFileName):
         # k=5 cross validation on training set
-        trainScores = cross_validate(
-            model, xTrain, yTrain, scoring=('accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'), return_train_score=True, return_estimator=True)
+        # trainScores = cross_validate(
+        #     model, xTrain, yTrain, scoring=['accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'], return_train_score=True, return_estimator=True, n_jobs=-1)
 
-        # estimators = trainScores['estimator']
-        trainScores = [trainScores['test_accuracy'].mean(), trainScores['test_accuracy'].std(), trainScores['test_balanced_accuracy'].mean(),
-                       trainScores['test_f1_weighted'].mean(), trainScores['test_precision_weighted'].mean(), trainScores['test_recall_weighted'].mean()]
+        # trainScores = [trainScores['test_accuracy'].mean(), trainScores['test_accuracy'].std(), trainScores['test_balanced_accuracy'].mean(),
+        #                trainScores['test_f1_weighted'].mean(), trainScores['test_precision_weighted'].mean(), trainScores['test_recall_weighted'].mean()]
 
-        print('Training set:', trainScores)
+        # print('Training set:', trainScores)
+
+        # calibrate the model
+        # by default it uses 5-fold CV
+        calibratedModel = CalibratedClassifierCV(base_estimator=model)
 
         # fit the model
-        model.fit(xTrain, yTrain)
+        calibratedModel.fit(xTrain, yTrain)
 
-        # predict
-        yPredicted = model.predict(xTest)
+        # predict on train data
+        yTrainPredicted = calibratedModel.predict(xTrain)
+        acc = accuracy_score(yTrain, yTrainPredicted)
+        balancedAcc = balanced_accuracy_score(yTrain, yTrainPredicted)
+        f1 = f1_score(yTrain, yTrainPredicted,
+                      average='weighted', zero_division=0)
+        precision = precision_score(
+            yTrain, yTrainPredicted, average='weighted', zero_division=0)
+        recall = recall_score(
+            yTrain, yTrainPredicted, average='weighted', zero_division=0)
+
+        trainScores = [acc, 0, balancedAcc, f1, precision, recall]
+        print('Training set:', trainScores)
+
+        # predict on test data
+        yPredicted = calibratedModel.predict(xTest)
 
         # save roc graphs
-        self.saveROC(model, xTrain, yTrain, xTest, yTest, testFileName)
+        self.saveROC(calibratedModel, xTrain, yTrain,
+                     xTest, yTest, testFileName)
 
         # save confusion matrix to .csv
         self.saveConfusionMatrix(yTest, yPredicted, testFileName)
@@ -178,9 +211,11 @@ class DataAnalysis:
         # get testing set scores
         acc = accuracy_score(yTest, yPredicted)
         balancedAcc = balanced_accuracy_score(yTest, yPredicted)
-        f1 = f1_score(yTest, yPredicted, average='weighted')
-        precision = precision_score(yTest, yPredicted, average='weighted')
-        recall = recall_score(yTest, yPredicted, average='weighted')
+        f1 = f1_score(yTest, yPredicted, average='weighted', zero_division=0)
+        precision = precision_score(
+            yTest, yPredicted, average='weighted', zero_division=0)
+        recall = recall_score(
+            yTest, yPredicted, average='weighted', zero_division=0)
 
         testScores = [acc, balancedAcc, f1, precision, recall]
 

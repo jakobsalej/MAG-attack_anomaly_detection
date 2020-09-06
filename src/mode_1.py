@@ -117,13 +117,15 @@ def savePredictionScores(noOfSamples, predictions, datasetSize):
         fullTrain[algName][datasetSize] = train
         fullTest[algName][datasetSize] = test
 
-        # add accuracy of each algorithm for plotting
+        # add accuracy / balanced_accuracy of each algorithm for plotting
+        # train: 0 = accuracy, 2 = balanced_accuracy
+        # test: 0 = accuracy, 1 = balanced_accuracy
         if algName in trainScores:
-            trainScores[algName].append(train[0])
-            testScores[algName].append(test[0])
+            trainScores[algName].append(train[2])
+            testScores[algName].append(test[1])
         else:
-            trainScores[algName] = [train[0]]
-            testScores[algName] = [test[0]]
+            trainScores[algName] = [train[2]]
+            testScores[algName] = [test[1]]
 
 
 def main():
@@ -139,7 +141,8 @@ def main():
     X, y = da.splitXY(sampleData)
 
     # split data into training (80%) and testing (20%) set
-    xTrain, xTest, yTrain, yTest = da.splitTrainTest(X, y, trainSize=0.8)
+    xTrain, xTest, yTrain, yTest = da.splitTrainTest(
+        X, y, trainSize=0.8, scale=True)
     saveDataset(xTrain.assign(normality=yTrain.values), 'AD_set_train')
     saveDataset(xTest.assign(normality=yTest.values), 'AD_set_test')
 
@@ -170,8 +173,10 @@ if __name__ == '__main__':
     # split data into train / test first (use the same 20% of ALL data as test set for all training sets)
 
     # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
+    # selectedSizes = [0.01, 0.05, 0.1, 0.2]
     selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
-    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    # selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf']
 
     # set number of repetitions and their respective random generator seeds
     randomSeeds = [42]

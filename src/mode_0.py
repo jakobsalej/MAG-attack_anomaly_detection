@@ -142,7 +142,8 @@ def main():
         X, y = da.splitXY(sampleData)
 
         # split data into training (80%) and testing (20%) set
-        xTrain, xTest, yTrain, yTest = da.splitTrainTest(X, y, trainSize=0.8)
+        xTrain, xTest, yTrain, yTest = da.splitTrainTest(
+            X, y, trainSize=0.8, scale=True)
 
         # get data characteristics for current dataset size
         dataInfo[datasetSize] = da.getDataCharacteristics(yTrain, yTest)
