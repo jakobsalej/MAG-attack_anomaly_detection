@@ -31,7 +31,7 @@ class DataAnalysis:
             'svm': ['SVM', algs.SVM()],
             'dt': ['Decision Tree', algs.DecisionTree()],
             'rf': ['Random Forest', algs.RandomForest()],
-            # 'ann': ['ANN', algs.ANN(epochs=5)],
+            'ann': ['ANN', algs.ANN()],
         }
 
     def saveData(self, data, fileName, folder='datasets'):
@@ -135,7 +135,7 @@ class DataAnalysis:
 
         # Learn to predict each class against the other
         classifier = OneVsRestClassifier(model)
-        yPredicted = classifier.fit(xTrain, yTrain).predict_proba(xTest)
+        yPredicted = classifier.fit(xTrain, yTrain).predict(xTest)
 
         # Compute ROC curve and ROC area for each class
         fpr = dict()
@@ -198,7 +198,7 @@ class DataAnalysis:
         yPredicted = calibratedModel.predict(xTest)
 
         # save roc graphs
-        self.saveROC(calibratedModel, xTrain, yTrain,
+        self.saveROC(model, xTrain, yTrain,
                      xTest, yTest, testFileName)
 
         # save confusion matrix to .csv
