@@ -27,7 +27,7 @@ class PerformanceAnalysis:
             'svm': ['SVM', algs.SVM()],
             'dt': ['Decision Tree', algs.DecisionTree()],
             'rf': ['Random Forest', algs.RandomForest()],
-            'ann': ['ANN', algs.ANN(epochs=5)],
+            # 'ann': ['ANN', algs.ANN(epochs=5)],
         }
 
     def measureFitTime(self, alg, X, y, repeats=5):
@@ -80,14 +80,14 @@ class PerformanceAnalysis:
 
 if __name__ == '__main__':
     pa = PerformanceAnalysis('../performance')
-    
+
     # load testing set
     testX, testY = pa.readFile('data/AD_set_test.csv')
 
     # selected algs & sizes
     algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
     datasetSizes = [20, 40, 60, 80, 100]
-    
+
     fitTimes = {}
     predictTimes = {}
 
@@ -105,7 +105,7 @@ if __name__ == '__main__':
             # measure predict time
             predictTimes[alg][size] = pa.measurePredictTime(
                 alg, trainX, trainY, testX, testY)
-    
+
     fitTimesDF = pd.DataFrame(fitTimes)
     predictTimesDF = pd.DataFrame(predictTimes)
 
