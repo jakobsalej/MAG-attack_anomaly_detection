@@ -2,6 +2,9 @@ import numpy as np
 import pandas as pd
 
 from sklearn.preprocessing import LabelEncoder, scale, StandardScaler
+from collections import Counter
+from imblearn.combine import SMOTEENN
+from imblearn.under_sampling import CondensedNearestNeighbour
 
 
 class DataPreparation:
@@ -49,6 +52,23 @@ class DataPreparation:
 
     def getNormalityMapping(self):
         return self.normalityMapping
+    
+    def resample(self):
+        # sme = SMOTEENN(sampling_strategy='all', random_state=42, n_jobs=4)
+        cnn = CondensedNearestNeighbour(sampling_strategy='majority', random_state=42, n_jobs=4)
+
+        # split X and y
+        X = self.data.drop('normality', axis=1)
+        y = self.data['normality']
+        X = pd.DataFrame(X, columns=X.columns)
+
+        print('Original dataset shape %s' % Counter(y))
+        resX, resY = cnn.fit_resample(X, y)
+        print('Resampled dataset shape %s' % Counter(resY))
+
+        # put X, y back together
+        self.data = pd.DataFrame(resX)
+        self.data['normality'] = resY
 
     def returnData(self, fraction=1, randomSeed=42):
         # return fraction of all data (or all, if fraction is 1) randomly

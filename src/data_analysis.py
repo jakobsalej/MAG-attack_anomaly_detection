@@ -55,7 +55,7 @@ class DataAnalysis:
 
         return X, y
 
-    def splitTrainTest(self, X, y, trainSize=0.8, randomSeed=1, scale=False):
+    def splitTrainTest(self, X, y, trainSize=0.8, randomSeed=42, scale=False):
         # split data into training and testing set
         if trainSize == 1:
             return X, None, y, None

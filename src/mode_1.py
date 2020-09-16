@@ -133,7 +133,7 @@ def main():
         return -1
 
     # use all available data
-    sampleData = dp.returnData(1, randomSeed=42)
+    sampleData = dp.returnData(1, randomSeed=randomSeeds[0])
     saveDataset(sampleData, 'AD_dataset')
 
     # split data into X and y
@@ -142,7 +142,11 @@ def main():
 
     # split data into training (80%) and testing (20%) set
     xTrain, xTest, yTrain, yTest = da.splitTrainTest(
-        X, y, trainSize=0.8, scale=True)
+        X, y, trainSize=0.8, scale=True, randomSeed=randomSeeds[0])
+
+    # print number of testing samples
+    print('### Number of test samples:', xTest.shape[0])
+
     saveDataset(xTrain.assign(normality=yTrain.values), 'AD_set_train')
     saveDataset(xTest.assign(normality=yTest.values), 'AD_set_test')
 
@@ -173,13 +177,16 @@ if __name__ == '__main__':
     # split data into train / test first (use the same 20% of ALL data as test set for all training sets)
 
     # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
-    selectedSizes = [0.01, 0.05, 0.1, 0.15, 0.2]
-    # selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
+    #selectedSizes = [0.01, 0.05, 0.1, 0.15, 0.2]
+    selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
     selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
     # selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf']
 
     # set number of repetitions and their respective random generator seeds
     randomSeeds = [42]
+
+    # set to True if data shouldbe resampled for a more balanced dataset
+    SHOULD_RESAMPLE = True
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
@@ -195,6 +202,10 @@ if __name__ == '__main__':
     # clean and preprocess data
     dp = DataPreparation('../data/mainSimulationAccessTraces.csv')
     dp.prepareData()
+
+    # resample data
+    if SHOULD_RESAMPLE:
+        dp.resample()
 
     # run predictions
     main()
