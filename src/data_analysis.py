@@ -10,7 +10,6 @@ from sklearn.preprocessing import scale, StandardScaler, label_binarize
 from sklearn.multiclass import OneVsRestClassifier
 from sklearn.calibration import CalibratedClassifierCV
 
-
 from algorithms import Algorithms
 
 
@@ -173,8 +172,7 @@ class DataAnalysis:
 
         # print('Training set:', trainScores)
 
-        # calibrate the model
-        # by default it uses 5-fold CV
+        # Calibrated Classifier uses 5-fold CV by default
         calibratedModel = CalibratedClassifierCV(base_estimator=model)
 
         # fit the model
