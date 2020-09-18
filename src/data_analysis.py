@@ -2,7 +2,9 @@ import os
 
 import numpy as np
 import pandas as pd
+
 import matplotlib.pyplot as plt
+from collections import Counter
 
 from sklearn.model_selection import train_test_split, cross_val_score, cross_validate
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score, confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
@@ -21,7 +23,8 @@ class DataAnalysis:
         self.predictions = None
         self.verbose = verbose
         self.dirName = dirName
-        self.outputClasses = [0, 1, 2, 3, 4, 5, 6, 7]
+        self.targetClasses = [0, 1, 2, 3, 4, 5, 6, 7]
+        self.classDistribution = {}
 
         # available algorithms ([name, implementation])
         algs = Algorithms()
@@ -110,6 +113,14 @@ class DataAnalysis:
         classesCount.append(countSum)
 
         return classesCount
+    
+    def saveClassDistribution(self, fileName, data):
+        # save class distribution for each file
+        c = Counter(data)
+        self.classDistribution[fileName] = [c[targetClass] for targetClass in self.targetClasses]
+    
+    def getClassDistribution(self):
+        return pd.DataFrame.from_dict(self.classDistribution, orient='index')
 
     def saveConfusionMatrix(self, yTrue, yPredicted, fileName):
         # save to .csv
@@ -120,7 +131,7 @@ class DataAnalysis:
         plt.close('all')
         plt.figure()
         disp = ConfusionMatrixDisplay(
-            confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize='true'), display_labels=self.outputClasses)
+            confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize='true'), display_labels=self.targetClasses)
         disp = disp.plot(include_values=True, cmap=plt.cm.Blues,
                          ax=None, xticks_rotation='horizontal')
         disp.ax_.set_title(f'CM_{fileName}')
@@ -128,8 +139,8 @@ class DataAnalysis:
 
     def saveROC(self, model, xTrain, yTrain, xTest, yTest, fileName):
         # Binarize the y
-        yTrain = label_binarize(yTrain, classes=self.outputClasses)
-        yTest = label_binarize(yTest, classes=self.outputClasses)
+        yTrain = label_binarize(yTrain, classes=self.targetClasses)
+        yTest = label_binarize(yTest, classes=self.targetClasses)
         nClasses = yTest.shape[1]
 
         # Learn to predict each class against the other
@@ -163,15 +174,6 @@ class DataAnalysis:
         plt.savefig(f'{self.dirName}/graphs/ROC_{fileName}.png')
 
     def predict(self, xTrain, xTest, yTrain, yTest, model, fileName, testFileName):
-        # k=5 cross validation on training set
-        # trainScores = cross_validate(
-        #     model, xTrain, yTrain, scoring=['accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'], return_train_score=True, return_estimator=True, n_jobs=-1)
-
-        # trainScores = [trainScores['test_accuracy'].mean(), trainScores['test_accuracy'].std(), trainScores['test_balanced_accuracy'].mean(),
-        #                trainScores['test_f1_weighted'].mean(), trainScores['test_precision_weighted'].mean(), trainScores['test_recall_weighted'].mean()]
-
-        # print('Training set:', trainScores)
-
         # Calibrated Classifier uses 5-fold CV by default
         calibratedModel = CalibratedClassifierCV(base_estimator=model)
 
@@ -219,7 +221,6 @@ class DataAnalysis:
 
         print('### Number of test samples:', xTest.shape[0])
         print('Testing set:', testScores)
-        # print('Unique predicted values:', np.unique(yPredicted))
 
         return trainScores, testScores
 
@@ -238,7 +239,9 @@ class DataAnalysis:
             predictions[algorithm[0]] = (trainScores, testScores)
 
             print('\nAverage train/test accuracy:',
-                  trainScores[0], testScores[0], '\n')
+                  trainScores[0], testScores[0])
+            print('Average train/test balanced accuracy:',
+                  trainScores[2], testScores[1], '\n')
 
         return noOfSamples, predictions
 
@@ -267,6 +270,9 @@ class DataAnalysis:
                     # save new training set
                     self.saveData(xTrain.assign(
                         normality=yTrain.values), fileName)
+                    
+                    # save class distribution
+                    self.saveClassDistribution(fileName, yTrain)
 
                 else:
                     # TODO: read from existing file instead of generating set again

@@ -12,22 +12,29 @@ from data_preparation import DataPreparation
 np.set_printoptions(precision=4)
 
 
-def plotResults(trainScores, testScores, draw=False):
-    # plot results
-    sns.set()
+def plotResults(trainScores, testScores, metric, draw=False):
+    # plot results (and save them to .csv)
+    # metricLabel = ''
+    # if metric == 'acc':
+    #     metricLabel = 'Accuracy'
+    # elif metric == 'balanced_acc':
+    #     metricLabel = 'Balanced Accuracy'
 
     train = pd.DataFrame(data=trainScores)
     test = pd.DataFrame(data=testScores)
 
+
     # save to .csv
-    train.to_csv(f'{dirName}/results/train_scores.csv')
-    test.to_csv(f'{dirName}/results/test_scores.csv')
+    train.to_csv(f'{dirName}/results/train_scores_{metric}.csv')
+    test.to_csv(f'{dirName}/results/test_scores_{metric}.csv')
 
     trainResults = train.melt(
         'Samples', var_name='Algorithm', value_name='Accuracy')
     testResults = test.melt(
         'Samples', var_name='Algorithm', value_name='Accuracy')
 
+    # plot
+    sns.set()
     # plt.ticklabel_format(style='plain', axis='y')
 
     # training accuracy
@@ -42,8 +49,8 @@ def plotResults(trainScores, testScores, draw=False):
                                 data=testResults, legend=True, legend_out=True)
 
     # save plot images
-    trainingPlot.get_figure().savefig(f'{dirName}/graphs/training_scores.png')
-    testingPlot.get_figure().savefig(f'{dirName}/graphs/testing_scores.png')
+    trainingPlot.get_figure().savefig(f'{dirName}/graphs/training_scores_{metric}.png')
+    testingPlot.get_figure().savefig(f'{dirName}/graphs/testing_scores_{metric}.png')
 
     # draw
     if draw:
@@ -103,8 +110,10 @@ def saveDataInfoToCSV(dataInfo):
 
 def savePredictionScores(noOfSamples, predictions, datasetSize):
     # add no. of samples to dict for plotting
-    trainScores['Samples'].append(noOfSamples)
-    testScores['Samples'].append(noOfSamples)
+    trainScoresAcc['Samples'].append(noOfSamples)
+    testScoresAcc['Samples'].append(noOfSamples)
+    trainScoresBalancedAcc['Samples'].append(noOfSamples)
+    testScoresBalancedAcc['Samples'].append(noOfSamples)
 
     for algName in predictions:
         (train, test) = predictions[algName]
@@ -120,25 +129,39 @@ def savePredictionScores(noOfSamples, predictions, datasetSize):
         # add accuracy / balanced_accuracy of each algorithm for plotting
         # train: 0 = accuracy, 2 = balanced_accuracy
         # test: 0 = accuracy, 1 = balanced_accuracy
-        if algName in trainScores:
-            trainScores[algName].append(train[2])
-            testScores[algName].append(test[1])
+        if algName in trainScoresAcc:
+            # accuracy
+            trainScoresAcc[algName].append(train[0])
+            testScoresAcc[algName].append(test[0])
+
+            # balanced accuracy
+            trainScoresBalancedAcc[algName].append(train[2])
+            testScoresBalancedAcc[algName].append(test[1])
         else:
-            trainScores[algName] = [train[2]]
-            testScores[algName] = [test[1]]
+            # accuracy
+            trainScoresAcc[algName] = [train[0]]
+            testScoresAcc[algName] = [test[0]]
+
+            # balanced accuracy
+            trainScoresBalancedAcc[algName] = [train[2]]
+            testScoresBalancedAcc[algName] = [test[1]]
 
 
 def main():
     if not dirName:
         return -1
+    
+    da = DataAnalysis(dirName=dirName)
 
     # use all available data
     sampleData = dp.returnData(1, randomSeed=randomSeeds[0])
     saveDataset(sampleData, 'AD_dataset')
 
     # split data into X and y
-    da = DataAnalysis(dirName=dirName)
     X, y = da.splitXY(sampleData)
+
+    # save class distribution for this set
+    da.saveClassDistribution('AD_dataset', y)
 
     # split data into training (80%) and testing (20%) set
     xTrain, xTest, yTrain, yTest = da.splitTrainTest(
@@ -149,6 +172,10 @@ def main():
 
     saveDataset(xTrain.assign(normality=yTrain.values), 'AD_set_train')
     saveDataset(xTest.assign(normality=yTest.values), 'AD_set_test')
+
+    # get class distribution
+    da.saveClassDistribution('AD_set_train', yTrain)
+    da.saveClassDistribution('AD_set_test', yTest)
 
     # get data characteristics for current dataset size
     dataInfo[1] = da.getDataCharacteristics(yTrain, yTest)
@@ -168,24 +195,30 @@ def main():
     # save data info to .csv
     saveDataInfoToCSV(dataInfo)
 
+    # save class distribution to csv
+    da.getClassDistribution().to_csv(f'{dirName}/datasets/class_distribution.csv')
+
     # save plots (to also draw them, pass draw=True as param)
-    plotResults(trainScores, testScores, draw=False)
+    plotResults(trainScoresAcc, testScoresAcc, metric='acc', draw=False)
+    plotResults(trainScoresBalancedAcc, testScoresBalancedAcc, metric='balanced_acc', draw=False)
 
 
 if __name__ == '__main__':
     # MODE 1:
-    # split data into train / test first (use the same 20% of ALL data as test set for all training sets)
+    # split data into train / test first (use the same 20% of ALL data as testing set for all training sets)
 
-    # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
-    #selectedSizes = [0.01, 0.05, 0.1, 0.15, 0.2]
+    # select dataset sizes (up to 1.0) and
+    #selectedSizes = [0.01, 0.02]
     selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
+    
+    # select algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
     selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
     # selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf']
 
     # set number of repetitions and their respective random generator seeds
     randomSeeds = [42]
 
-    # set to True if data shouldbe resampled for a more balanced dataset
+    # set to True if training set should be resampled for a more balanced set
     SHOULD_RESAMPLE = False
 
     # create new directory for results of this run
@@ -194,10 +227,14 @@ if __name__ == '__main__':
 
     # init dicts to hold data
     dataInfo = {}
+
     fullTrain = {}
     fullTest = {}
-    trainScores = {'Samples': []}    # scores for plotting
-    testScores = {'Samples': []}     # scores for plotting
+
+    trainScoresAcc = {'Samples': []}    # scores for plotting
+    testScoresAcc = {'Samples': []}     # scores for plotting
+    trainScoresBalancedAcc = {'Samples': []}    # scores for plotting
+    testScoresBalancedAcc = {'Samples': []}     # scores for plotting
 
     # clean and preprocess data
     dp = DataPreparation('../data/mainSimulationAccessTraces.csv')
