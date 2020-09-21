@@ -2,9 +2,11 @@ import os
 
 import numpy as np
 import pandas as pd
-
-import matplotlib.pyplot as plt
 from collections import Counter
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 
 from sklearn.model_selection import train_test_split, cross_val_score, cross_validate
 from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score, confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score

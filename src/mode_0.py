@@ -1,8 +1,12 @@
 from datetime import datetime
 import os
-import matplotlib.pyplot as plt
+
 import numpy as np
 import pandas as pd
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import seaborn as sns
 
 from data_analysis import DataAnalysis
@@ -12,38 +16,44 @@ from data_preparation import DataPreparation
 np.set_printoptions(precision=4)
 
 
-def plotResults(trainScores, testScores, draw=False):
-    # plot results
-    sns.set()
+def plotResults(trainScores, testScores, metric, draw=False):
+    # plot results (and save them to .csv)
+    metricLabel = ''
+    if metric == 'acc':
+        metricLabel = 'Accuracy'
+    elif metric == 'balanced_acc':
+        metricLabel = 'Balanced Accuracy'
 
     train = pd.DataFrame(data=trainScores)
     test = pd.DataFrame(data=testScores)
 
     # save to .csv
-    train.to_csv(f'{dirName}/results/train_scores.csv')
-    test.to_csv(f'{dirName}/results/test_scores.csv')
+    train.to_csv(f'{dirName}/results/train_scores_{metric}.csv')
+    test.to_csv(f'{dirName}/results/test_scores_{metric}.csv')
 
     trainResults = train.melt(
-        'Samples', var_name='Algorithm', value_name='Accuracy')
+        'Samples', var_name='Algorithm', value_name=metricLabel)
     testResults = test.melt(
-        'Samples', var_name='Algorithm', value_name='Accuracy')
+        'Samples', var_name='Algorithm', value_name=metricLabel)
 
+    # plot
+    sns.set()
     # plt.ticklabel_format(style='plain', axis='y')
 
     # training accuracy
     plt.close('all')
     plt.figure()
-    trainingPlot = sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
+    trainingPlot = sns.pointplot(x='Samples', y=metricLabel, hue='Algorithm',
                                  data=trainResults, legend=True, legend_out=True)
 
     # testing accuracy
     plt.figure()
-    testingPlot = sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
+    testingPlot = sns.pointplot(x='Samples', y=metricLabel, hue='Algorithm',
                                 data=testResults, legend=True, legend_out=True)
 
     # save plot images
-    trainingPlot.get_figure().savefig(f'{dirName}/graphs/training_scores.png')
-    testingPlot.get_figure().savefig(f'{dirName}/graphs/testing_scores.png')
+    trainingPlot.get_figure().savefig(f'{dirName}/graphs/training_scores_{metric}.png')
+    testingPlot.get_figure().savefig(f'{dirName}/graphs/testing_scores_{metric}.png')
 
     # draw
     if draw:
@@ -103,8 +113,10 @@ def saveDataInfoToCSV(dataInfo):
 
 def savePredictionScores(noOfSamples, predictions, datasetSize):
     # add no. of samples to dict for plotting
-    trainScores['Samples'].append(noOfSamples)
-    testScores['Samples'].append(noOfSamples)
+    trainScoresAcc['Samples'].append(noOfSamples)
+    testScoresAcc['Samples'].append(noOfSamples)
+    trainScoresBalancedAcc['Samples'].append(noOfSamples)
+    testScoresBalancedAcc['Samples'].append(noOfSamples)
 
     for algName in predictions:
         (train, test) = predictions[algName]
@@ -117,14 +129,25 @@ def savePredictionScores(noOfSamples, predictions, datasetSize):
         fullTrain[algName][datasetSize] = train
         fullTest[algName][datasetSize] = test
 
-        # add accuracy of each algorithm for plotting
-        if algName in trainScores:
-            trainScores[algName].append(train[0])
-            testScores[algName].append(test[0])
-        else:
-            trainScores[algName] = [train[0]]
-            testScores[algName] = [test[0]]
+        # add accuracy / balanced_accuracy of each algorithm for plotting
+        # train: 0 = accuracy, 2 = balanced_accuracy
+        # test: 0 = accuracy, 1 = balanced_accuracy
+        if algName in trainScoresAcc:
+            # accuracy
+            trainScoresAcc[algName].append(train[0])
+            testScoresAcc[algName].append(test[0])
 
+            # balanced accuracy
+            trainScoresBalancedAcc[algName].append(train[2])
+            testScoresBalancedAcc[algName].append(test[1])
+        else:
+            # accuracy
+            trainScoresAcc[algName] = [train[0]]
+            testScoresAcc[algName] = [test[0]]
+
+            # balanced accuracy
+            trainScoresBalancedAcc[algName] = [train[2]]
+            testScoresBalancedAcc[algName] = [test[1]]
 
 def main():
     if not dirName:
@@ -135,23 +158,28 @@ def main():
     # Run predictions
     for datasetSize in (selectedSizes or [0.2, 0.4, 0.6, 0.8, 1]):
         # get the percentage of all data
-        sampleData = dp.returnData(datasetSize, randomSeed=42)
-        saveDataset(sampleData, 'AD_dataset')
+        sampleData = dp.returnData(datasetSize, randomSeed=RANDOM_SEED)
+        saveDataset(sampleData, f'AD_set_{datasetSize * 100}_seed{RANDOM_SEED}')
 
         # split data into X and y
         X, y = da.splitXY(sampleData)
 
         # split data into training (80%) and testing (20%) set
         xTrain, xTest, yTrain, yTest = da.splitTrainTest(
-            X, y, trainSize=0.8, scale=True)
+            X, y, trainSize=0.8, scale=True, randomSeed=RANDOM_SEED)
+
+        # save class distribution for this set
+        da.saveClassDistribution(f'AD_set_{datasetSize * 100:.0f}_seed{RANDOM_SEED}', y)
+        da.saveClassDistribution(f'AD_set_train{datasetSize * 100:.0f}_seed{RANDOM_SEED}', yTrain)
+        da.saveClassDistribution(f'AD_set_test{datasetSize * 100:.0f}_seed{RANDOM_SEED}', yTest)
 
         # get data characteristics for current dataset size
         dataInfo[datasetSize] = da.getDataCharacteristics(yTrain, yTest)
 
         # get no. of samples and prediction accuracy (trainSize is set to 1, so no further data splitting is done)
         # multiple runs make no sense here, since we always take whole set
-        noOfSamples, predictions = da.getScores(xTrain, xTest, yTrain, yTest, trainSize=datasetSize, randomSeeds=randomSeeds, mode=0, selectedAlgorithms=selectedAlgorithms) if selectedAlgorithms else da.getScores(
-            xTrain, yTrain, xTest, yTest, trainSize=datasetSize, randomSeeds=randomSeeds, mode=0)
+        noOfSamples, predictions = da.getScores(xTrain, xTest, yTrain, yTest, trainSize=datasetSize, randomSeeds=[RANDOM_SEED], mode=0, selectedAlgorithms=selectedAlgorithms) if selectedAlgorithms else da.getScores(
+            xTrain, yTrain, xTest, yTest, trainSize=datasetSize, randomSeeds=[RANDOM_SEED], mode=0)
 
         # save results for graphs and .csv files
         savePredictionScores(noOfSamples, predictions, datasetSize)
@@ -162,8 +190,13 @@ def main():
     # save data info to .csv
     saveDataInfoToCSV(dataInfo)
 
+    # save class distribution to csv
+    da.getClassDistribution().to_csv(f'{dirName}/datasets/class_distribution.csv')
+
     # save plots (to also draw them, pass draw=True as param)
-    plotResults(trainScores, testScores, draw=False)
+    plotResults(trainScoresAcc, testScoresAcc, metric='acc', draw=False)
+    plotResults(trainScoresBalancedAcc, testScoresBalancedAcc, metric='balanced_acc', draw=False)
+
 
 
 if __name__ == '__main__':
@@ -174,8 +207,11 @@ if __name__ == '__main__':
     selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
     selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
 
-    # set number of repetitions and their respective random generator seeds
-    randomSeeds = [42]
+    # set random seed for data sampling
+    RANDOM_SEED = 42
+
+     # set to True if training set should be resampled for a more balanced set
+    SHOULD_RESAMPLE = False
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
@@ -185,8 +221,12 @@ if __name__ == '__main__':
     dataInfo = {}
     fullTrain = {}
     fullTest = {}
-    trainScores = {'Samples': []}    # scores for plotting
-    testScores = {'Samples': []}     # scores for plotting
+
+    # scores for plotting
+    trainScoresAcc = {'Samples': []}    
+    testScoresAcc = {'Samples': []}
+    trainScoresBalancedAcc = {'Samples': []}
+    testScoresBalancedAcc = {'Samples': []}
 
     # clean and preprocess data
     dp = DataPreparation('../data/mainSimulationAccessTraces.csv')

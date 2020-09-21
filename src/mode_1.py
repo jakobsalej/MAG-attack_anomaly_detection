@@ -1,8 +1,12 @@
-from datetime import datetime
 import os
-import matplotlib.pyplot as plt
+from datetime import datetime
+
 import numpy as np
 import pandas as pd
+
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
 import seaborn as sns
 
 from data_analysis import DataAnalysis
@@ -14,11 +18,11 @@ np.set_printoptions(precision=4)
 
 def plotResults(trainScores, testScores, metric, draw=False):
     # plot results (and save them to .csv)
-    # metricLabel = ''
-    # if metric == 'acc':
-    #     metricLabel = 'Accuracy'
-    # elif metric == 'balanced_acc':
-    #     metricLabel = 'Balanced Accuracy'
+    metricLabel = ''
+    if metric == 'acc':
+        metricLabel = 'Accuracy'
+    elif metric == 'balanced_acc':
+        metricLabel = 'Balanced Accuracy'
 
     train = pd.DataFrame(data=trainScores)
     test = pd.DataFrame(data=testScores)
@@ -29,9 +33,9 @@ def plotResults(trainScores, testScores, metric, draw=False):
     test.to_csv(f'{dirName}/results/test_scores_{metric}.csv')
 
     trainResults = train.melt(
-        'Samples', var_name='Algorithm', value_name='Accuracy')
+        'Samples', var_name='Algorithm', value_name=metricLabel)
     testResults = test.melt(
-        'Samples', var_name='Algorithm', value_name='Accuracy')
+        'Samples', var_name='Algorithm', value_name=metricLabel)
 
     # plot
     sns.set()
@@ -40,12 +44,12 @@ def plotResults(trainScores, testScores, metric, draw=False):
     # training accuracy
     plt.close('all')
     plt.figure()
-    trainingPlot = sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
+    trainingPlot = sns.pointplot(x='Samples', y=metricLabel, hue='Algorithm',
                                  data=trainResults, legend=True, legend_out=True)
 
     # testing accuracy
     plt.figure()
-    testingPlot = sns.pointplot(x='Samples', y='Accuracy', hue='Algorithm',
+    testingPlot = sns.pointplot(x='Samples', y=metricLabel, hue='Algorithm',
                                 data=testResults, legend=True, legend_out=True)
 
     # save plot images
@@ -208,12 +212,12 @@ if __name__ == '__main__':
     # split data into train / test first (use the same 20% of ALL data as testing set for all training sets)
 
     # select dataset sizes (up to 1.0) and
-    #selectedSizes = [0.01, 0.02]
-    selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
+    selectedSizes = [0.01, 0.02]
+    #selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
     
     # select algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
-    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
-    # selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf']
+    #selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    selectedAlgorithms = ['svm', 'dt', 'rf']
 
     # set number of repetitions and their respective random generator seeds
     randomSeeds = [42]
@@ -231,10 +235,11 @@ if __name__ == '__main__':
     fullTrain = {}
     fullTest = {}
 
-    trainScoresAcc = {'Samples': []}    # scores for plotting
-    testScoresAcc = {'Samples': []}     # scores for plotting
-    trainScoresBalancedAcc = {'Samples': []}    # scores for plotting
-    testScoresBalancedAcc = {'Samples': []}     # scores for plotting
+    # scores for plotting
+    trainScoresAcc = {'Samples': []}    
+    testScoresAcc = {'Samples': []}
+    trainScoresBalancedAcc = {'Samples': []}
+    testScoresBalancedAcc = {'Samples': []}
 
     # clean and preprocess data
     dp = DataPreparation('../data/mainSimulationAccessTraces.csv')
