@@ -159,7 +159,7 @@ def main():
     for datasetSize in (selectedSizes or [0.2, 0.4, 0.6, 0.8, 1]):
         # get the percentage of all data
         sampleData = dp.returnData(datasetSize, randomSeed=RANDOM_SEED)
-        saveDataset(sampleData, f'AD_set_{datasetSize * 100}_seed{RANDOM_SEED}')
+        saveDataset(sampleData, f'AD_set_{datasetSize * 100:.0f}_seed{RANDOM_SEED}')
 
         # split data into X and y
         X, y = da.splitXY(sampleData)

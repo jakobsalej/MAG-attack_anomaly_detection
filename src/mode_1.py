@@ -27,7 +27,6 @@ def plotResults(trainScores, testScores, metric, draw=False):
     train = pd.DataFrame(data=trainScores)
     test = pd.DataFrame(data=testScores)
 
-
     # save to .csv
     train.to_csv(f'{dirName}/results/train_scores_{metric}.csv')
     test.to_csv(f'{dirName}/results/test_scores_{metric}.csv')
@@ -169,7 +168,7 @@ def main():
 
     # split data into training (80%) and testing (20%) set
     xTrain, xTest, yTrain, yTest = da.splitTrainTest(
-        X, y, trainSize=0.8, scale=True, randomSeed=randomSeeds[0])
+        X, y, trainSize=0.8, scale=True, resample=SHOULD_RESAMPLE, randomSeed=randomSeeds[0])
 
     # print number of testing samples
     print('### Number of test samples:', xTest.shape[0])
@@ -212,18 +211,18 @@ if __name__ == '__main__':
     # split data into train / test first (use the same 20% of ALL data as testing set for all training sets)
 
     # select dataset sizes (up to 1.0) and
-    selectedSizes = [0.01, 0.02]
-    #selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
+    # selectedSizes = [0.01, 0.02]
+    selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
     
     # select algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
-    #selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
-    selectedAlgorithms = ['svm', 'dt', 'rf']
+    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    # selectedAlgorithms = ['dt', 'rf']
 
     # set number of repetitions and their respective random generator seeds
     randomSeeds = [42]
 
     # set to True if training set should be resampled for a more balanced set
-    SHOULD_RESAMPLE = False
+    SHOULD_RESAMPLE = True
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
@@ -244,10 +243,6 @@ if __name__ == '__main__':
     # clean and preprocess data
     dp = DataPreparation('../data/mainSimulationAccessTraces.csv')
     dp.prepareData()
-
-    # resample data
-    if SHOULD_RESAMPLE:
-        dp.resample()
 
     # run predictions
     main()
