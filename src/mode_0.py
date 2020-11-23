@@ -153,7 +153,7 @@ def main():
     if not dirName:
         return -1
 
-    da = DataAnalysis(dirName=dirName)
+    da = DataAnalysis(dirName=dirName, mode=0)
 
     # Run predictions
     for datasetSize in (selectedSizes or [0.2, 0.4, 0.6, 0.8, 1]):

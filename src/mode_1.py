@@ -154,7 +154,7 @@ def main():
     if not dirName:
         return -1
     
-    da = DataAnalysis(dirName=dirName)
+    da = DataAnalysis(dirName=dirName, mode=1)
 
     # use all available data
     sampleData = dp.returnData(1, randomSeed=randomSeeds[0])
@@ -222,7 +222,7 @@ if __name__ == '__main__':
     randomSeeds = [42]
 
     # set to True if training set should be resampled for a more balanced set
-    SHOULD_RESAMPLE = True
+    SHOULD_RESAMPLE = False
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)

@@ -24,20 +24,21 @@ np.set_printoptions(precision=4)
 
 
 class DataAnalysis:
-    def __init__(self, dirName, verbose=0):
+    def __init__(self, dirName, mode, verbose=0):
         self.predictions = None
         self.verbose = verbose
         self.dirName = dirName
+        self.mode = mode
         self.targetClasses = [0, 1, 2, 3, 4, 5, 6, 7]
         self.classDistribution = {}
 
         # available algorithms ([name, implementation])
         algs = Algorithms()
         self.algorithms = {
-            'logReg': ['Logistic Regression', algs.logisticRegression()],
+            'logReg': ['LR', algs.logisticRegression()],
             'svm': ['SVM', algs.SVM()],
-            'dt': ['Decision Tree', algs.DecisionTree()],
-            'rf': ['Random Forest', algs.RandomForest()],
+            'dt': ['DT', algs.DecisionTree()],
+            'rf': ['RF', algs.RandomForest()],
             'ann': ['ANN', algs.ANN()],
         }
 
@@ -176,7 +177,7 @@ class DataAnalysis:
             confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize=None), display_labels=self.targetClasses)
         disp = disp.plot(include_values=True, cmap=plt.cm.Blues,
                          ax=None, xticks_rotation='horizontal')
-        disp.ax_.set_title(f'CM_{fileName}')
+        disp.ax_.set_title(f'CM_{fileName}_M{self.mode}')
         disp.figure_.savefig(f'{self.dirName}/graphs/CM_{fileName}.png')
 
     def saveROC(self, model, xTrain, yTrain, xTest, yTest, fileName):
@@ -211,7 +212,7 @@ class DataAnalysis:
         plt.ylim([0.0, 1.05])
         plt.xlabel('False Positive Rate')
         plt.ylabel('True Positive Rate')
-        plt.title(f'ROC_{fileName}')
+        plt.title(f'ROC_{fileName}_M{self.mode}')
         plt.legend(loc="lower right")
         plt.savefig(f'{self.dirName}/graphs/ROC_{fileName}.png')
 
