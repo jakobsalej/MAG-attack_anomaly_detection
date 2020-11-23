@@ -9,11 +9,12 @@ from ann import ANN
 
 
 class Algorithms:
-    def __init__(self, verbose=0):
+    def __init__(self, verbose=0, jobs=-1):
         self.verbose = verbose
+        self.jobs = jobs
 
     def logisticRegression(self):
-        return LogisticRegression(verbose=self.verbose, class_weight='balanced', max_iter=10000, n_jobs=-1)
+        return LogisticRegression(verbose=self.verbose, class_weight='balanced', max_iter=10000, n_jobs=self.jobs)
 
     def SVM(self):
         return SVC(verbose=self.verbose, class_weight='balanced')
@@ -24,7 +25,7 @@ class Algorithms:
         return DecisionTreeClassifier()
 
     def RandomForest(self, nEstimators=100):
-        return RandomForestClassifier(n_estimators=nEstimators, n_jobs=-1)
+        return RandomForestClassifier(n_estimators=nEstimators, n_jobs=self.jobs)
 
     def ANN(self, epochs=10):
         ann = ANN()
