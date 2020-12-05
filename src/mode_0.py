@@ -153,7 +153,7 @@ def main():
     if not dirName:
         return -1
 
-    da = DataAnalysis(dirName=dirName, mode=0, pi=True)
+    da = DataAnalysis(dirName=dirName, mode=0, pi=PI)
 
     # Run predictions
     for datasetSize in (selectedSizes or [0.2, 0.4, 0.6, 0.8, 1]):
@@ -202,6 +202,9 @@ def main():
 if __name__ == '__main__':
     # MODE 0:
     # take percentage of all data, then split it into train (80%) / test (20%)
+
+    # to run on Raspberry Pi, set to True
+    PI = True
 
     # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
     selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]

@@ -154,7 +154,7 @@ def main():
     if not dirName:
         return -1
     
-    da = DataAnalysis(dirName=dirName, mode=1)
+    da = DataAnalysis(dirName=dirName, mode=1, pi=PI)
 
     # use all available data
     sampleData = dp.returnData(1, randomSeed=randomSeeds[0])
@@ -209,6 +209,9 @@ def main():
 if __name__ == '__main__':
     # MODE 1:
     # split data into train / test first (use the same 20% of ALL data as testing set for all training sets)
+
+    # to run on Raspberry Pi, set to True
+    PI = True
 
     # select dataset sizes (up to 1.0) and
     # selectedSizes = [0.01, 0.02]
