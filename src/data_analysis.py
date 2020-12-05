@@ -17,6 +17,8 @@ from sklearn.calibration import CalibratedClassifierCV
 from imblearn.combine import SMOTEENN
 from imblearn.under_sampling import CondensedNearestNeighbour
 
+from keras import backend as K
+
 from algorithms import Algorithms
 
 
@@ -24,8 +26,9 @@ np.set_printoptions(precision=4)
 
 
 class DataAnalysis:
-    def __init__(self, dirName, mode, verbose=0):
+    def __init__(self, dirName, mode, pi=False, verbose=0):
         self.predictions = None
+        self.pi = pi
         self.verbose = verbose
         self.dirName = dirName
         self.mode = mode
@@ -33,7 +36,7 @@ class DataAnalysis:
         self.classDistribution = {}
 
         # available algorithms ([name, implementation])
-        algs = Algorithms()
+        algs = Algorithms(pi=self.pi)
         self.algorithms = {
             'logReg': ['LR', algs.logisticRegression()],
             'svm': ['SVM', algs.SVM()],
@@ -107,7 +110,7 @@ class DataAnalysis:
         # scale X as part of preprocessing
         if scale:
             # fit Standard Scaler on train data
-            standardScaler = StandardScaler().fit(xTrain)
+            standardScaler = StandardScaler().fit(xTrain) 
 
             # transform xTrain
             xTrainColumns = xTrain.columns
@@ -219,9 +222,16 @@ class DataAnalysis:
     def predict(self, xTrain, xTest, yTrain, yTest, model, fileName, testFileName):
         # Calibrated Classifier uses 5-fold CV by default
         calibratedModel = CalibratedClassifierCV(base_estimator=model)
-
+        
         # fit the model
-        calibratedModel.fit(xTrain, yTrain)
+        print(xTrain)
+        print(yTrain)
+        yTrain = np.asarray(yTrain).astype(np.float32)
+        print(yTrain.view())
+        print('This is first time!')
+        xTrain1 = K.cast_to_floatx(xTrain)
+        yTrain1 = K.cast_to_floatx(yTrain)
+        calibratedModel.fit(xTrain1, yTrain1)
 
         # predict on train data
         yTrainPredicted = calibratedModel.predict(xTrain)
@@ -329,6 +339,13 @@ class DataAnalysis:
                     normality=yTrain.values), fileName)
 
             # get prediction scores
+            if algName == 'ANN':
+                print('converting')
+                xTrain = np.asarray(xTrain).astype(np.float32)
+                xTest = np.asarray(xTest).astype(np.float32)
+                yTrain = np.asarray(yTrain).astype(np.float32)
+                yTest = np.asarray(yTest).astype(np.float32)
+            
             trainScores, testScores = self.predict(
                 xTrain, xTest, yTrain, yTest, alg, fileName, f'{trainSize * 100:.0f}_{algName}')
 

@@ -9,17 +9,19 @@ from ann import ANN
 
 
 class Algorithms:
-    def __init__(self, verbose=0, jobs=-1):
+    def __init__(self, verbose=0, jobs=-1, pi=False):
         self.verbose = verbose
-        self.jobs = jobs
+        self.jobs = 1 if pi else jobs
+        self.pi = pi
 
     def logisticRegression(self):
         return LogisticRegression(verbose=self.verbose, class_weight='balanced', max_iter=10000, n_jobs=self.jobs)
 
     def SVM(self):
-        return SVC(verbose=self.verbose, class_weight='balanced')
-        # return CalibratedClassifierCV(base_estimator=LinearSVC(dual=False, class_weight='balanced', verbose=self.verbose), cv='prefit')
-        # return LinearSVC(dual=False, class_weight='balanced', verbose=self.verbose)
+        if self.pi:
+            return LinearSVC(dual=False, class_weight='balanced', verbose=self.verbose)
+        return SVC(class_weight='balanced', verbose=self.verbose)
+        
 
     def DecisionTree(self):
         return DecisionTreeClassifier()
