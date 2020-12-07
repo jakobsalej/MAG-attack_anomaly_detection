@@ -208,8 +208,8 @@ if __name__ == '__main__':
 
     # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
     selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
-    #selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
-    selectedAlgorithms = ['ann']
+    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    #selectedAlgorithms = ['ann']
 
     # set random seed for data sampling
     RANDOM_SEED = 42
