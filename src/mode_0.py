@@ -166,7 +166,7 @@ def main():
 
         # split data into training (80%) and testing (20%) set
         xTrain, xTest, yTrain, yTest = da.splitTrainTest(
-            X, y, trainSize=0.8, scale=True, randomSeed=RANDOM_SEED)
+            X, y, trainSize=0.8, scale=True, resample=True, randomSeed=RANDOM_SEED)
 
         # save class distribution for this set
         da.saveClassDistribution(f'AD_set_{datasetSize * 100:.0f}_seed{RANDOM_SEED}', y)
@@ -215,7 +215,7 @@ if __name__ == '__main__':
     RANDOM_SEED = 42
 
      # set to True if training set should be resampled for a more balanced set
-    SHOULD_RESAMPLE = False
+    SHOULD_RESAMPLE = True
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)

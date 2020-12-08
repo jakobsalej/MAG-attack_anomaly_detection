@@ -225,7 +225,7 @@ if __name__ == '__main__':
     randomSeeds = [42]
 
     # set to True if training set should be resampled for a more balanced set
-    SHOULD_RESAMPLE = False
+    SHOULD_RESAMPLE = True
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
