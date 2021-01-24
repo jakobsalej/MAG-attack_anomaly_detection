@@ -6,16 +6,18 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import seaborn as sns
+from sklearn.calibration import CalibratedClassifierCV
 
 from algorithms import Algorithms
 
 
 class PerformanceAnalysis:
-    def __init__(self, dirName, resultsDir=datetime.now().strftime("%d-%m-%Y(%H-%M-%S)"), verbose=0):
+    def __init__(self, resultsDir=datetime.now().strftime("%d-%m-%Y(%H-%M-%S)"), verbose=0):
         self.predictions = None
         self.verbose = verbose
-        self.dirName = dirName
-        self.resultsDirName = f'{dirName}/{resultsDir}'
+        self.dirName = 'results/performance_analysis'
+        self.resultsDirName = f'{self.dirName}/{resultsDir}'
+        self.model = {}
 
         if not os.path.exists(self.resultsDirName):
             os.mkdir(self.resultsDirName)
@@ -23,46 +25,56 @@ class PerformanceAnalysis:
         # available algorithms ([name, implementation])
         algs = Algorithms()
         self.algorithms = {
-            'logReg': ['Logistic Regression', algs.logisticRegression()],
+            'logReg': ['LR', algs.logisticRegression()],
             'svm': ['SVM', algs.SVM()],
-            'dt': ['Decision Tree', algs.DecisionTree()],
-            'rf': ['Random Forest', algs.RandomForest()],
-            # 'ann': ['ANN', algs.ANN(epochs=5)],
+            'dt': ['DT', algs.DecisionTree()],
+            'rf': ['RF', algs.RandomForest()],
+            'ann': ['ANN', algs.ANN()],
         }
 
-    def measureFitTime(self, alg, X, y, repeats=5):
-        fastestRun = None
+    def measureFitTime(self, alg, X, y, repeats=10):
+        times = []
+        calibratedModel = None
 
         for i in range(repeats):
-            model = self.algorithms[alg][1]
+            calibratedModel = None
+            # Calibrated Classifier uses 5-fold CV by default
+            calibratedModel = CalibratedClassifierCV(
+                base_estimator=self.algorithms[alg][1])
+
+            # fit the model
             startTime = time.time()
-            model.fit(X, y)
+            calibratedModel.fit(X, y)
             duration = time.time() - startTime
             print(f'{alg} train, run {i+1}: {duration}s')
+            times.append(duration)
 
-            if fastestRun is None or duration < fastestRun:
-                fastestRun = duration
+        # Keep last trained model for predictions
+        self.model[alg] = calibratedModel
 
-        return fastestRun
+        return times
 
-    def measurePredictTime(self, alg, trainX, trainY, X, y, repeats=5):
-        fastestRun = None
-        model = self.algorithms[alg][1]
-        model.fit(trainX, trainY)
+    def measurePredictTime(self, alg, trainX, trainY, X, y, repeats=10):
+        times = []
+
+        # Check if train model for selected alg exists
+        if not self.model[alg]:
+            calibratedModel = CalibratedClassifierCV(
+                base_estimator=self.algorithms[alg][1])
+            calibratedModel.fit(X, y)
+            self.model[alg] = calibratedModel
 
         for i in range(repeats):
             startTime = time.time()
-            yPredicted = model.predict(X)
+            _ = self.model[alg].predict(X)
             duration = time.time() - startTime
             print(f'{alg} predict, run {i+1}: {duration}s')
+            times.append(duration)
 
-            if fastestRun is None or duration < fastestRun:
-                fastestRun = duration
-
-        return fastestRun
+        return times
 
     def readFile(self, path):
-        data = pd.read_csv(f'{self.dirName}/{path}', index_col=0)
+        data = pd.read_csv(path, index_col=0)
         X = data.drop('normality', axis=1)
         y = data['normality']
         return X, y
@@ -79,42 +91,55 @@ class PerformanceAnalysis:
 
 
 if __name__ == '__main__':
-    pa = PerformanceAnalysis('../performance')
+    pa = PerformanceAnalysis()
 
     # load testing set
-    testX, testY = pa.readFile('data/AD_set_test.csv')
+    dataFolder = 'results/mode_1/08-12-2020(00-58-51)/datasets'
+    testX, testY = pa.readFile(f'{dataFolder}/AD_set_test.csv')
 
     # selected algs & sizes
     algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    # algs = ['logReg', 'dt']
     datasetSizes = [20, 40, 60, 80, 100]
+    # datasetSizes = [20, 40, 60]
 
-    fitTimes = {}
-    predictTimes = {}
+    # For charts
+    averageFitTimes = {}
+    averagePredictTimes = {}
 
     for alg in algs:
-        fitTimes[alg] = {}
-        predictTimes[alg] = {}
+        algTag = pa.algorithms[alg][0]
+
+        averageFitTimes[alg] = {}
+        averagePredictTimes[alg] = {}
+        fitTimes = {}
+        predictTimes = {}
 
         for size in datasetSizes:
             # load training set (testing set is always the same)
-            trainX, trainY = pa.readFile(f'data/AD_set_train{size}_seed42.csv')
+            trainDatasetFile = f'{dataFolder}/AD_set_train{size}_seed42.csv'
+            if size == 100:
+                trainDatasetFile = f'{dataFolder}/AD_set_train.csv'
+
+            trainX, trainY = pa.readFile(trainDatasetFile)
 
             # measure train time
-            fitTimes[alg][size] = pa.measureFitTime(alg, trainX, trainY)
+            measuredFitTimes = pa.measureFitTime(alg, trainX, trainY)
+            fitTimes[size] = measuredFitTimes
+            averageFitTimes[alg][size] = np.average(measuredFitTimes)
 
             # measure predict time
-            predictTimes[alg][size] = pa.measurePredictTime(
+            measuredPredictTimes = pa.measurePredictTime(
                 alg, trainX, trainY, testX, testY)
+            predictTimes[size] = measuredPredictTimes
+            averagePredictTimes[alg][size] = np.average(measuredPredictTimes)
 
-    fitTimesDF = pd.DataFrame(fitTimes)
-    predictTimesDF = pd.DataFrame(predictTimes)
+        # Save alg results to a file
+        pa.saveDataToCSV(pd.DataFrame(fitTimes), f'fit_times_{algTag}')
+        pa.saveDataToCSV(pd.DataFrame(predictTimes), f'predict_times_{algTag}')
 
     # save times to .csv
-    pa.saveDataToCSV(fitTimesDF, 'fit_time')
-    pa.saveDataToCSV(predictTimesDF, 'predict_time')
-
-    # plot results
-    pa.savePlot(fitTimesDF.transpose(), 'fit_time')
-    pa.savePlot(predictTimesDF.transpose(), 'predict_time')
-    # pa.savePlot(fitTimesDF, 'fit_time')
-    # pa.savePlot(predictTimesDF, 'predict_time')
+    averageFitTimesDF = pd.DataFrame(averageFitTimes)
+    averagePredictTimesDF = pd.DataFrame(averagePredictTimes)
+    pa.saveDataToCSV(averageFitTimesDF, 'avg_fit_times')
+    pa.saveDataToCSV(averagePredictTimesDF, 'avg_predict_times')
