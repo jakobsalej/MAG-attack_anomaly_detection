@@ -170,7 +170,7 @@ def main():
 
         # split data into training (80%) and testing (20%) set
         xTrain, xTest, yTrain, yTest = da.splitTrainTest(
-            X, y, trainSize=0.8, scale=True, resample=True, randomSeed=RANDOM_SEED)
+            X, y, trainSize=0.8, scale=True, resample=SHOULD_RESAMPLE, randomSeed=RANDOM_SEED)
 
         # save class distribution for this set
         da.saveClassDistribution(
