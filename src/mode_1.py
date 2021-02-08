@@ -1,16 +1,16 @@
+from data_preparation import DataPreparation
+from data_analysis import DataAnalysis
+import seaborn as sns
+import matplotlib.pyplot as plt
 import os
 from datetime import datetime
+import json
 
 import numpy as np
 import pandas as pd
 
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import seaborn as sns
-
-from data_analysis import DataAnalysis
-from data_preparation import DataPreparation
 
 
 np.set_printoptions(precision=4)
@@ -52,8 +52,10 @@ def plotResults(trainScores, testScores, metric, draw=False):
                                 data=testResults, legend=True, legend_out=True)
 
     # save plot images
-    trainingPlot.get_figure().savefig(f'{dirName}/graphs/training_scores_{metric}.png')
-    testingPlot.get_figure().savefig(f'{dirName}/graphs/testing_scores_{metric}.png')
+    trainingPlot.get_figure().savefig(
+        f'{dirName}/graphs/training_scores_{metric}.png')
+    testingPlot.get_figure().savefig(
+        f'{dirName}/graphs/testing_scores_{metric}.png')
 
     # draw
     if draw:
@@ -73,6 +75,7 @@ def createDir(name=datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")):
         os.mkdir(f'{newFolder}/results')
         os.mkdir(f'{newFolder}/graphs')
         os.mkdir(f'{newFolder}/datasets')
+        os.mkdir(f'{newFolder}/info')
         return newFolder
     except FileExistsError:
         print(f'Directory {name} already exists')
@@ -108,7 +111,7 @@ def saveDataInfoToCSV(dataInfo):
     normalityClasses.append('sum')
     dataInfoDF = pd.DataFrame(data=dataInfo, index=normalityClasses)
     # save to csv
-    dataInfoDF.to_csv(f'{dirName}/datasets/data_info.csv')
+    dataInfoDF.to_csv(f'{dirName}/info/data_info.csv')
 
 
 def savePredictionScores(noOfSamples, predictions, datasetSize):
@@ -153,7 +156,7 @@ def savePredictionScores(noOfSamples, predictions, datasetSize):
 def main():
     if not dirName:
         return -1
-    
+
     da = DataAnalysis(dirName=dirName, mode=1, pi=PI)
 
     # use all available data
@@ -199,11 +202,13 @@ def main():
     saveDataInfoToCSV(dataInfo)
 
     # save class distribution to csv
-    da.getClassDistribution().to_csv(f'{dirName}/datasets/class_distribution.csv')
+    da.getClassDistribution().to_csv(
+        f'{dirName}/info/class_distribution.csv')
 
     # save plots (to also draw them, pass draw=True as param)
     plotResults(trainScoresAcc, testScoresAcc, metric='acc', draw=False)
-    plotResults(trainScoresBalancedAcc, testScoresBalancedAcc, metric='balanced_acc', draw=False)
+    plotResults(trainScoresBalancedAcc, testScoresBalancedAcc,
+                metric='balanced_acc', draw=False)
 
 
 if __name__ == '__main__':
@@ -211,25 +216,37 @@ if __name__ == '__main__':
     # split data into train / test first (use the same 20% of ALL data as testing set for all training sets)
 
     # to run on Raspberry Pi, set to True
-    PI = True
+    PI = False
 
     # select dataset sizes (up to 1.0) and
     # selectedSizes = [0.01, 0.02]
     selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
-    
+
     # select algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
     selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
     # selectedAlgorithms = ['dt', 'rf']
 
     # set number of repetitions and their respective random generator seeds
-    randomSeeds = [42]
+    randomSeeds = [20]
 
     # set to True if training set should be resampled for a more balanced set
-    SHOULD_RESAMPLE = True
+    SHOULD_RESAMPLE = False
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
     dirName = createDir()
+
+    # save run settings
+    settings = {
+        'MODE': 1,
+        'SELECTED_SIZES': selectedSizes,
+        'SELECTED_ALGORITHMS': selectedAlgorithms,
+        'PI_OPTIMIZED': PI,
+        'RANDOM_SEED': randomSeeds[0],
+        'RESAMPLED_DATASET': SHOULD_RESAMPLE
+    }
+    with open(f'{dirName}/info/run_settings.json', 'w') as fp:
+        json.dump(settings, fp)
 
     # init dicts to hold data
     dataInfo = {}
@@ -238,7 +255,7 @@ if __name__ == '__main__':
     fullTest = {}
 
     # scores for plotting
-    trainScoresAcc = {'Samples': []}    
+    trainScoresAcc = {'Samples': []}
     testScoresAcc = {'Samples': []}
     trainScoresBalancedAcc = {'Samples': []}
     testScoresBalancedAcc = {'Samples': []}

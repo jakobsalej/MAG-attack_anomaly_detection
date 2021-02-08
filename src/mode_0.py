@@ -1,19 +1,18 @@
-from datetime import datetime
-import os
-
-import numpy as np
-import pandas as pd
-
-import matplotlib
-matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-import seaborn as sns
-
 from data_analysis import DataAnalysis
 from data_preparation import DataPreparation
 
+import seaborn as sns
+import matplotlib
+import matplotlib.pyplot as plt
+from datetime import datetime
+import os
+import json
+
+import pandas as pd
+import numpy as np
 
 np.set_printoptions(precision=4)
+matplotlib.use('Agg')
 
 
 def plotResults(trainScores, testScores, metric, draw=False):
@@ -52,8 +51,10 @@ def plotResults(trainScores, testScores, metric, draw=False):
                                 data=testResults, legend=True, legend_out=True)
 
     # save plot images
-    trainingPlot.get_figure().savefig(f'{dirName}/graphs/training_scores_{metric}.png')
-    testingPlot.get_figure().savefig(f'{dirName}/graphs/testing_scores_{metric}.png')
+    trainingPlot.get_figure().savefig(
+        f'{dirName}/graphs/training_scores_{metric}.png')
+    testingPlot.get_figure().savefig(
+        f'{dirName}/graphs/testing_scores_{metric}.png')
 
     # draw
     if draw:
@@ -73,6 +74,7 @@ def createDir(name=datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")):
         os.mkdir(f'{newFolder}/results')
         os.mkdir(f'{newFolder}/graphs')
         os.mkdir(f'{newFolder}/datasets')
+        os.mkdir(f'{newFolder}/info')
         return newFolder
     except FileExistsError:
         print("Directory ", name,  " already exists")
@@ -108,7 +110,7 @@ def saveDataInfoToCSV(dataInfo):
     normalityClasses.append('sum')
     dataInfoDF = pd.DataFrame(data=dataInfo, index=normalityClasses)
     # save to csv
-    dataInfoDF.to_csv(f'{dirName}/datasets/data_info.csv')
+    dataInfoDF.to_csv(f'{dirName}/info/data_info.csv')
 
 
 def savePredictionScores(noOfSamples, predictions, datasetSize):
@@ -149,6 +151,7 @@ def savePredictionScores(noOfSamples, predictions, datasetSize):
             trainScoresBalancedAcc[algName] = [train[2]]
             testScoresBalancedAcc[algName] = [test[1]]
 
+
 def main():
     if not dirName:
         return -1
@@ -159,7 +162,8 @@ def main():
     for datasetSize in (selectedSizes or [0.2, 0.4, 0.6, 0.8, 1]):
         # get the percentage of all data
         sampleData = dp.returnData(datasetSize, randomSeed=RANDOM_SEED)
-        saveDataset(sampleData, f'AD_set_{datasetSize * 100:.0f}_seed{RANDOM_SEED}')
+        saveDataset(
+            sampleData, f'AD_set_{datasetSize * 100:.0f}_seed{RANDOM_SEED}')
 
         # split data into X and y
         X, y = da.splitXY(sampleData)
@@ -169,9 +173,12 @@ def main():
             X, y, trainSize=0.8, scale=True, resample=True, randomSeed=RANDOM_SEED)
 
         # save class distribution for this set
-        da.saveClassDistribution(f'AD_set_{datasetSize * 100:.0f}_seed{RANDOM_SEED}', y)
-        da.saveClassDistribution(f'AD_set_train{datasetSize * 100:.0f}_seed{RANDOM_SEED}', yTrain)
-        da.saveClassDistribution(f'AD_set_test{datasetSize * 100:.0f}_seed{RANDOM_SEED}', yTest)
+        da.saveClassDistribution(
+            f'AD_set_{datasetSize * 100:.0f}_seed{RANDOM_SEED}', y)
+        da.saveClassDistribution(
+            f'AD_set_train{datasetSize * 100:.0f}_seed{RANDOM_SEED}', yTrain)
+        da.saveClassDistribution(
+            f'AD_set_test{datasetSize * 100:.0f}_seed{RANDOM_SEED}', yTest)
 
         # get data characteristics for current dataset size
         dataInfo[datasetSize] = da.getDataCharacteristics(yTrain, yTest)
@@ -191,12 +198,13 @@ def main():
     saveDataInfoToCSV(dataInfo)
 
     # save class distribution to csv
-    da.getClassDistribution().to_csv(f'{dirName}/datasets/class_distribution.csv')
+    da.getClassDistribution().to_csv(
+        f'{dirName}/info/class_distribution.csv')
 
     # save plots (to also draw them, pass draw=True as param)
     plotResults(trainScoresAcc, testScoresAcc, metric='acc', draw=False)
-    plotResults(trainScoresBalancedAcc, testScoresBalancedAcc, metric='balanced_acc', draw=False)
-
+    plotResults(trainScoresBalancedAcc, testScoresBalancedAcc,
+                metric='balanced_acc', draw=False)
 
 
 if __name__ == '__main__':
@@ -204,7 +212,7 @@ if __name__ == '__main__':
     # take percentage of all data, then split it into train (80%) / test (20%)
 
     # to run on Raspberry Pi, set to True
-    PI = True
+    PI = False
 
     # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
     selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
@@ -212,14 +220,27 @@ if __name__ == '__main__':
     #selectedAlgorithms = ['ann']
 
     # set random seed for data sampling
-    RANDOM_SEED = 42
+    # RANDOM_SEED = 42
+    RANDOM_SEED = 20
 
-     # set to True if training set should be resampled for a more balanced set
-    SHOULD_RESAMPLE = True
+    # set to True if training set should be resampled for a more balanced set
+    SHOULD_RESAMPLE = False
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
     dirName = createDir()
+
+    # save run settings
+    settings = {
+        'MODE': 0,
+        'SELECTED_SIZES': selectedSizes,
+        'SELECTED_ALGORITHMS': selectedAlgorithms,
+        'PI_OPTIMIZED': PI,
+        'RANDOM_SEED': RANDOM_SEED,
+        'RESAMPLED_DATASET': SHOULD_RESAMPLE
+    }
+    with open(f'{dirName}/info/run_settings.json', 'w') as fp:
+        json.dump(settings, fp)
 
     # init dicts to hold data
     dataInfo = {}
@@ -227,7 +248,7 @@ if __name__ == '__main__':
     fullTest = {}
 
     # scores for plotting
-    trainScoresAcc = {'Samples': []}    
+    trainScoresAcc = {'Samples': []}
     testScoresAcc = {'Samples': []}
     trainScoresBalancedAcc = {'Samples': []}
     testScoresBalancedAcc = {'Samples': []}
