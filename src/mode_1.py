@@ -87,7 +87,7 @@ def saveDataset(data, fileName, folder='datasets'):
         if not os.path.exists(f'{dirName}/{folder}'):
             os.mkdir(f'{dirName}/{folder}')
 
-        data.to_csv(f'{dirName}/{folder}/{fileName}.csv')
+        data.to_csv(f'{dirName}/{folder}/{fileName}.csv', index=False)
     except:
         print("Something went wrong")
 
@@ -227,7 +227,7 @@ if __name__ == '__main__':
     # selectedAlgorithms = ['dt', 'rf']
 
     # set number of repetitions and their respective random generator seeds
-    randomSeeds = [20]
+    randomSeeds = [5]
 
     # set to True if training set should be resampled for a more balanced set
     SHOULD_RESAMPLE = False

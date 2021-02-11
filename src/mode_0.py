@@ -86,7 +86,7 @@ def saveDataset(data, fileName, folder='datasets'):
         if not os.path.exists(f'{dirName}/{folder}'):
             os.mkdir(f'{dirName}/{folder}')
 
-        data.to_csv(f'{dirName}/{folder}/{fileName}.csv')
+        data.to_csv(f'{dirName}/{folder}/{fileName}.csv', index=False)
     except:
         print("Something went wrong")
 
@@ -221,7 +221,7 @@ if __name__ == '__main__':
 
     # set random seed for data sampling
     # RANDOM_SEED = 42
-    RANDOM_SEED = 20
+    RANDOM_SEED = 5
 
     # set to True if training set should be resampled for a more balanced set
     SHOULD_RESAMPLE = False

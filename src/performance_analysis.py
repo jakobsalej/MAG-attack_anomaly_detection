@@ -94,14 +94,14 @@ if __name__ == '__main__':
     pa = PerformanceAnalysis()
 
     # load testing set
-    dataFolder = 'results/mode_1/08-12-2020(00-58-51)/datasets'
+    dataFolder = 'results/mode_1/xps13_all_seed42/datasets'
     testX, testY = pa.readFile(f'{dataFolder}/AD_set_test.csv')
 
     # selected algs & sizes
     algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
     # algs = ['logReg', 'dt']
-    datasetSizes = [20, 40, 60, 80, 100]
-    # datasetSizes = [20, 40, 60]
+    # datasetSizes = [20, 40, 60, 80, 100]
+    datasetSizes = [20, 40]
 
     # For charts
     averageFitTimes = {}
