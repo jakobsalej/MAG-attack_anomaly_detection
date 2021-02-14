@@ -2,6 +2,9 @@ import time
 from datetime import datetime
 import os
 
+from data_preparation import DataPreparation
+from data_analysis import DataAnalysis
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -22,16 +25,6 @@ class PerformanceAnalysis:
         if not os.path.exists(self.resultsDirName):
             os.mkdir(self.resultsDirName)
 
-        # available algorithms ([name, implementation])
-        algs = Algorithms()
-        self.algorithms = {
-            'logReg': ['LR', algs.logisticRegression()],
-            'svm': ['SVM', algs.SVM()],
-            'dt': ['DT', algs.DecisionTree()],
-            'rf': ['RF', algs.RandomForest()],
-            'ann': ['ANN', algs.ANN()],
-        }
-
     def measureFitTime(self, alg, X, y, repeats=10):
         times = []
         calibratedModel = None
@@ -40,7 +33,7 @@ class PerformanceAnalysis:
             calibratedModel = None
             # Calibrated Classifier uses 5-fold CV by default
             calibratedModel = CalibratedClassifierCV(
-                base_estimator=self.algorithms[alg][1])
+                base_estimator=da.algorithms[alg][1])
 
             # fit the model
             startTime = time.time()
@@ -54,15 +47,8 @@ class PerformanceAnalysis:
 
         return times
 
-    def measurePredictTime(self, alg, trainX, trainY, X, y, repeats=10):
+    def measurePredictTime(self, alg, X, y, repeats=10):
         times = []
-
-        # Check if train model for selected alg exists
-        if not self.model[alg]:
-            calibratedModel = CalibratedClassifierCV(
-                base_estimator=self.algorithms[alg][1])
-            calibratedModel.fit(X, y)
-            self.model[alg] = calibratedModel
 
         for i in range(repeats):
             startTime = time.time()
@@ -93,22 +79,35 @@ class PerformanceAnalysis:
 if __name__ == '__main__':
     pa = PerformanceAnalysis()
 
-    # load testing set
-    dataFolder = 'results/mode_1/08-12-2020(00-58-51)/datasets'
-    testX, testY = pa.readFile(f'{dataFolder}/AD_set_test.csv')
+    # variables
+    SHOULD_RESAMPLE = False
+    RANDOM_SEED = 42
+    PI = False
+    # algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    algs = ['dt']
+    datasetSizes = [0.2, 0.4]
 
-    # selected algs & sizes
-    algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
-    # algs = ['logReg', 'dt']
-    datasetSizes = [20, 40, 60, 80, 100]
-    # datasetSizes = [20, 40, 60]
+    # clean and preprocess data
+    print('Preparing data...')
+    dp = DataPreparation('data/mainSimulationAccessTraces.csv')
+    dp.prepareData()
+    sampleData = dp.returnData(1, randomSeed=RANDOM_SEED)
+
+    # split data into X and y
+    da = DataAnalysis(dirName=None, mode=1, pi=PI)
+    X, y = da.splitXY(sampleData)
+
+    # split data into training (80%) and testing (20%) set
+    print('Creating training and testing dataset...')
+    xTrain, xTest, yTrain, yTest = da.splitTrainTest(
+        X, y, trainSize=0.8, scale=True, resample=SHOULD_RESAMPLE, randomSeed=RANDOM_SEED)
 
     # For charts
     averageFitTimes = {}
     averagePredictTimes = {}
 
     for alg in algs:
-        algTag = pa.algorithms[alg][0]
+        algTag = da.algorithms[alg][0]
 
         averageFitTimes[alg] = {}
         averagePredictTimes[alg] = {}
@@ -116,21 +115,18 @@ if __name__ == '__main__':
         predictTimes = {}
 
         for size in datasetSizes:
-            # load training set (testing set is always the same)
-            trainDatasetFile = f'{dataFolder}/AD_set_train{size}_seed42.csv'
-            if size == 100:
-                trainDatasetFile = f'{dataFolder}/AD_set_train.csv'
-
-            trainX, trainY = pa.readFile(trainDatasetFile)
+            # split training set further into smaller sets]
+            xTrainSmall, _, yTrainSmall, _ = da.splitTrainTest(
+                X, y, trainSize=size, scale=False, resample=False, randomSeed=RANDOM_SEED)
 
             # measure train time
-            measuredFitTimes = pa.measureFitTime(alg, trainX, trainY)
+            measuredFitTimes = pa.measureFitTime(alg, xTrainSmall, yTrainSmall)
             fitTimes[size] = measuredFitTimes
             averageFitTimes[alg][size] = np.average(measuredFitTimes)
 
             # measure predict time
             measuredPredictTimes = pa.measurePredictTime(
-                alg, trainX, trainY, testX, testY)
+                alg, xTest, yTest)
             predictTimes[size] = measuredPredictTimes
             averagePredictTimes[alg][size] = np.average(measuredPredictTimes)
 

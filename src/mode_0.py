@@ -221,7 +221,7 @@ if __name__ == '__main__':
 
     # set random seed for data sampling
     # RANDOM_SEED = 42
-    RANDOM_SEED = 20
+    RANDOM_SEED = 42
 
     # set to True if training set should be resampled for a more balanced set
     SHOULD_RESAMPLE = False
