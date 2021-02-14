@@ -1,3 +1,12 @@
+from algorithms import Algorithms
+from imblearn.under_sampling import CondensedNearestNeighbour
+from imblearn.combine import SMOTEENN
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.multiclass import OneVsRestClassifier
+from sklearn.preprocessing import scale, StandardScaler, label_binarize
+from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score, confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
+from sklearn.model_selection import train_test_split, cross_val_score, cross_validate
+import matplotlib.pyplot as plt
 import os
 
 import numpy as np
@@ -6,18 +15,6 @@ from collections import Counter
 
 import matplotlib
 matplotlib.use('Agg')
-import matplotlib.pyplot as plt
-
-from sklearn.model_selection import train_test_split, cross_val_score, cross_validate
-from sklearn.metrics import accuracy_score, balanced_accuracy_score, f1_score, precision_score, recall_score, confusion_matrix, ConfusionMatrixDisplay, roc_curve, auc, roc_auc_score
-from sklearn.preprocessing import scale, StandardScaler, label_binarize
-from sklearn.multiclass import OneVsRestClassifier
-from sklearn.calibration import CalibratedClassifierCV
-
-from imblearn.combine import SMOTEENN
-from imblearn.under_sampling import CondensedNearestNeighbour
-
-from algorithms import Algorithms
 
 
 np.set_printoptions(precision=4)
@@ -62,7 +59,8 @@ class DataAnalysis:
         print('Original training set shape %s' % Counter(y))
 
         # randomly sample examples of class 7 to drop
-        samplesToDrop = data.query('normality == 7').sample(frac=dropPercentage, random_state=randomSeed)
+        samplesToDrop = data.query('normality == 7').sample(
+            frac=dropPercentage, random_state=randomSeed)
         data.drop(samplesToDrop.index, inplace=True)
 
         resY = data['normality']
@@ -71,10 +69,12 @@ class DataAnalysis:
         print('Resampled training set shape %s' % Counter(resY))
 
         return resX, resY
-    
+
     def resample(self, X, y):
-        cnn = CondensedNearestNeighbour(sampling_strategy='majority', random_state=42, n_jobs=4)
-        sme = SMOTEENN(sampling_strategy='not majority', random_state=42, n_jobs=4)
+        cnn = CondensedNearestNeighbour(
+            sampling_strategy='majority', random_state=42, n_jobs=4)
+        sme = SMOTEENN(sampling_strategy='not majority',
+                       random_state=42, n_jobs=4)
 
         print('Original training set shape %s' % Counter(y))
 
@@ -97,7 +97,7 @@ class DataAnalysis:
 
         return X, y
 
-    def splitTrainTest(self, X, y, trainSize=0.8, randomSeed=42, scale=False, resample=False):
+    def splitTrainTest(self, X, y, trainSize, randomSeed, scale=False, resample=False):
         # split data into training and testing set
         if trainSize == 1:
             return X, None, y, None
@@ -108,7 +108,7 @@ class DataAnalysis:
         # scale X as part of preprocessing
         if scale:
             # fit Standard Scaler on train data
-            standardScaler = StandardScaler().fit(xTrain) 
+            standardScaler = StandardScaler().fit(xTrain)
 
             # transform xTrain
             xTrainColumns = xTrain.columns
@@ -119,7 +119,7 @@ class DataAnalysis:
             xTestColumns = xTest.columns
             xTest = standardScaler.transform(xTest)
             xTest = pd.DataFrame(xTest, columns=xTestColumns)
-        
+
         if resample:
             xTrain, yTrain = self.randomResample(xTrain, yTrain)
 
@@ -156,13 +156,14 @@ class DataAnalysis:
         classesCount.append(countSum)
 
         return classesCount
-    
+
     def saveClassDistribution(self, fileName, data):
         # save class distribution for each file
         c = Counter(data)
         allExamples = data.shape[0]
-        self.classDistribution[fileName] = [f'{c[targetClass]} ({(c[targetClass] / allExamples) * 100:0.2f}%)' for targetClass in self.targetClasses]
-    
+        self.classDistribution[fileName] = [
+            f'{c[targetClass]} ({(c[targetClass] / allExamples) * 100:0.2f}%)' for targetClass in self.targetClasses]
+
     def getClassDistribution(self):
         return pd.DataFrame.from_dict(self.classDistribution, orient='index')
 
@@ -220,7 +221,7 @@ class DataAnalysis:
     def predict(self, xTrain, xTest, yTrain, yTest, model, fileName, testFileName):
         # Calibrated Classifier uses 5-fold CV by default
         calibratedModel = CalibratedClassifierCV(base_estimator=model)
-        
+
         # fit the model
         calibratedModel.fit(xTrain, yTrain)
 
@@ -314,7 +315,7 @@ class DataAnalysis:
                     # save new training set
                     self.saveData(xTrain.assign(
                         normality=yTrain.values), fileName)
-                    
+
                     # save class distribution
                     self.saveClassDistribution(fileName, yTrain)
 
@@ -329,7 +330,7 @@ class DataAnalysis:
                 self.saveData(xTrain.assign(
                     normality=yTrain.values), fileName)
 
-            # get prediction scores            
+            # get prediction scores
             trainScores, testScores = self.predict(
                 xTrain, xTest, yTrain, yTest, alg, fileName, f'{trainSize * 100:.0f}_{algName}')
 
