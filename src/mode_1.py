@@ -227,7 +227,7 @@ if __name__ == '__main__':
     # selectedAlgorithms = ['dt', 'rf']
 
     # set number of repetitions and their respective random generator seeds
-    randomSeeds = [42]
+    randomSeeds = [10]
 
     # set to True if training set should be resampled for a more balanced set
     SHOULD_RESAMPLE = False
