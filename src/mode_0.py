@@ -212,7 +212,7 @@ if __name__ == '__main__':
     # take percentage of all data, then split it into train (80%) / test (20%)
 
     # to run on Raspberry Pi, set to True
-    PI = False
+    PI = True
 
     # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
     selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
