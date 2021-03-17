@@ -44,7 +44,7 @@ class DataAnalysis:
         try:
             if not os.path.exists(f'{self.dirName}/{folder}'):
                 os.mkdir(f'{self.dirName}/{folder}')
-            data.to_csv(f'{self.dirName}/{folder}/{fileName}.csv')
+            data.to_csv(f'{self.dirName}/{folder}/{fileName}.csv', index=False)
         except Exception as exception:
             print(exception)
 
@@ -170,7 +170,7 @@ class DataAnalysis:
     def saveConfusionMatrix(self, yTrue, yPredicted, fileName):
         # save to .csv
         pd.DataFrame(confusion_matrix(yTrue, yPredicted)).to_csv(
-            f'{self.dirName}/results/CM_{fileName}.csv')
+            f'{self.dirName}/results/CM_{fileName}.csv', index=False)
 
         # save graph
         plt.close('all')

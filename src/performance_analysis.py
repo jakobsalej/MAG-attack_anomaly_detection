@@ -1,6 +1,7 @@
 import time
 from datetime import datetime
 import os
+import json
 
 from data_preparation import DataPreparation
 from data_analysis import DataAnalysis
@@ -22,10 +23,13 @@ class PerformanceAnalysis:
         self.resultsDirName = f'{self.dirName}/{resultsDir}'
         self.model = {}
 
+        if not os.path.exists(self.dirName):
+            os.mkdir(self.dirName)
+
         if not os.path.exists(self.resultsDirName):
             os.mkdir(self.resultsDirName)
 
-    def measureFitTime(self, alg, X, y, repeats=10):
+    def measureFitTime(self, alg, X, y, repeats=5):
         times = []
         calibratedModel = None
 
@@ -47,7 +51,7 @@ class PerformanceAnalysis:
 
         return times
 
-    def measurePredictTime(self, alg, X, y, repeats=10):
+    def measurePredictTime(self, alg, X, y, repeats=5):
         times = []
 
         for i in range(repeats):
@@ -80,12 +84,23 @@ if __name__ == '__main__':
     pa = PerformanceAnalysis()
 
     # variables
-    SHOULD_RESAMPLE = False
+    SHOULD_RESAMPLE = True
     RANDOM_SEED = 42
     PI = False
-    # algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
-    algs = ['dt']
-    datasetSizes = [0.2, 0.4]
+    algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    # algs = ['dt']
+    datasetSizes = [1]
+
+    # save run settings
+    settings = {
+        'TRAINING_SET_SIZES': datasetSizes,
+        'SELECTED_ALGORITHMS': algs,
+        'PI_OPTIMIZED': PI,
+        'RANDOM_SEED': RANDOM_SEED,
+        'RESAMPLED_DATASET': SHOULD_RESAMPLE
+    }
+    with open(f'{pa.resultsDirName}/run_settings.json', 'w') as fp:
+        json.dump(settings, fp)
 
     # clean and preprocess data
     print('Preparing data...')

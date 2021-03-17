@@ -1,0 +1,1 @@
+{"MODE": 1, "SELECTED_SIZES": [0.2, 0.4, 0.6, 0.8, 1], "SELECTED_ALGORITHMS": ["logReg", "svm", "dt", "rf", "ann"], "PI_OPTIMIZED": false, "RANDOM_SEED": 10, "RESAMPLED_DATASET": false}
