@@ -216,7 +216,7 @@ if __name__ == '__main__':
     # split data into train / test first (use the same 20% of ALL data as testing set for all training sets)
 
     # to run on Raspberry Pi, set to True
-    PI = False
+    PI = True
 
     # select dataset sizes (up to 1.0) and
     # selectedSizes = [0.01, 0.02]
@@ -230,7 +230,7 @@ if __name__ == '__main__':
     randomSeeds = [10]
 
     # set to True if training set should be resampled for a more balanced set
-    SHOULD_RESAMPLE = False
+    SHOULD_RESAMPLE = True
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
