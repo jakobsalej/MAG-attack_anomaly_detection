@@ -120,6 +120,7 @@ if __name__ == '__main__':
     # For charts
     averageFitTimes = {}
     averagePredictTimes = {}
+    setSizes = {}
 
     for alg in algs:
         algTag = da.algorithms[alg][0]
@@ -132,7 +133,14 @@ if __name__ == '__main__':
         for size in datasetSizes:
             # split training set further into smaller sets]
             xTrainSmall, _, yTrainSmall, _ = da.splitTrainTest(
-                X, y, trainSize=size, scale=False, resample=False, randomSeed=RANDOM_SEED)
+                xTrain, yTrain, trainSize=size, scale=False, resample=False, randomSeed=RANDOM_SEED)
+
+            # save training/testing set size to file
+            if size not in setSizes:
+                setSizes[size] = {
+                    'training': xTrainSmall.shape[0],
+                    'testing': xTest.shape[0]
+                }
 
             # measure train time
             measuredFitTimes = pa.measureFitTime(alg, xTrainSmall, yTrainSmall)
@@ -149,8 +157,8 @@ if __name__ == '__main__':
         pa.saveDataToCSV(pd.DataFrame(fitTimes), f'fit_times_{algTag}')
         pa.saveDataToCSV(pd.DataFrame(predictTimes), f'predict_times_{algTag}')
 
-    # save times to .csv
-    averageFitTimesDF = pd.DataFrame(averageFitTimes)
-    averagePredictTimesDF = pd.DataFrame(averagePredictTimes)
-    pa.saveDataToCSV(averageFitTimesDF, 'avg_fit_times')
-    pa.saveDataToCSV(averagePredictTimesDF, 'avg_predict_times')
+    # save times, set sizes to .csv
+    pa.saveDataToCSV(pd.DataFrame(averageFitTimes), 'avg_fit_times')
+    pa.saveDataToCSV(pd.DataFrame(averagePredictTimes), 'avg_predict_times')
+    pa.saveDataToCSV(pd.DataFrame(setSizes), 'dataset_sizes')
+
