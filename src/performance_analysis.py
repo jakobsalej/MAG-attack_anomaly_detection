@@ -84,7 +84,7 @@ if __name__ == '__main__':
     pa = PerformanceAnalysis()
 
     # variables
-    SHOULD_RESAMPLE = True
+    SHOULD_RESAMPLE = False
     RANDOM_SEED = 42
     PI = False
     algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
