@@ -170,7 +170,7 @@ def main():
 
         # split data into training (80%) and testing (20%) set
         xTrain, xTest, yTrain, yTest = da.splitTrainTest(
-            X, y, trainSize=0.8, scale=True, resample=SHOULD_RESAMPLE, randomSeed=RANDOM_SEED)
+            X, y, trainSize=TRAIN_SET_SIZE, scale=True, resample=SHOULD_RESAMPLE, randomSeed=RANDOM_SEED)
 
         # save class distribution for this set
         da.saveClassDistribution(
@@ -211,19 +211,14 @@ if __name__ == '__main__':
     # MODE 0:
     # take percentage of all data, then split it into train (80%) / test (20%)
 
-    # to run on Raspberry Pi, set to True
-    PI = True
+    # parameters
+    PI = False
+    RANDOM_SEED = 42            # set random seed for data sampling
+    SHOULD_RESAMPLE = False     # set to True if training set should be resampled for a more balanced set
+    TRAIN_SET_SIZE = 0.2
 
-    # select dataset sizes (up to 1.0) and algorithms (all options: 'logReg', 'svm', 'dt', 'rf', 'ann')
     selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
     selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
-    #selectedAlgorithms = ['ann']
-
-    # set random seed for data sampling
-    RANDOM_SEED = 42
-
-    # set to True if training set should be resampled for a more balanced set
-    SHOULD_RESAMPLE = False
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
@@ -236,7 +231,8 @@ if __name__ == '__main__':
         'SELECTED_ALGORITHMS': selectedAlgorithms,
         'PI_OPTIMIZED': PI,
         'RANDOM_SEED': RANDOM_SEED,
-        'RESAMPLED_DATASET': SHOULD_RESAMPLE
+        'RESAMPLED_DATASET': SHOULD_RESAMPLE,
+        'TRAIN_SET_SIZE': TRAIN_SET_SIZE,
     }
     with open(f'{dirName}/info/run_settings.json', 'w') as fp:
         json.dump(settings, fp)

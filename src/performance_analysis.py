@@ -86,10 +86,11 @@ if __name__ == '__main__':
     # variables
     SHOULD_RESAMPLE = True
     RANDOM_SEED = 42
-    PI = True
+    PI = False
     algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
     # algs = ['dt']
     datasetSizes = [1]
+
 
     # save run settings
     settings = {
