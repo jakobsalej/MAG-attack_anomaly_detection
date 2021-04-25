@@ -84,12 +84,12 @@ if __name__ == '__main__':
     pa = PerformanceAnalysis()
 
     # variables
-    SHOULD_RESAMPLE = False
+    SHOULD_RESAMPLE = True
     RANDOM_SEED = 42
     PI = True
     algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
     # algs = ['dt']
-    datasetSizes = [0.2]
+    datasetSizes = [1]
 
     # save run settings
     settings = {
