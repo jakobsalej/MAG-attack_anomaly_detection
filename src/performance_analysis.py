@@ -2,6 +2,7 @@ import time
 from datetime import datetime
 import os
 import json
+import argparse
 
 from data_preparation import DataPreparation
 from data_analysis import DataAnalysis
@@ -13,6 +14,7 @@ import seaborn as sns
 from sklearn.calibration import CalibratedClassifierCV
 
 from algorithms import Algorithms
+
 
 
 class PerformanceAnalysis:
@@ -81,16 +83,20 @@ class PerformanceAnalysis:
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s','--size', type=float, nargs='+', required=True)
+    args = parser.parse_args()
+    
     pa = PerformanceAnalysis()
 
     # variables
-    SHOULD_RESAMPLE = True
+    SHOULD_RESAMPLE = False
     RANDOM_SEED = 42
     PI = False
-    algs = ['logReg', 'svm', 'dt', 'rf', 'ann']
+    algs = ['svm']
     # algs = ['dt']
-    datasetSizes = [1]
-
+    datasetSizes = args.size
+    print(datasetSizes)
 
     # save run settings
     settings = {
