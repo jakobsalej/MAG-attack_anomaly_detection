@@ -35,6 +35,7 @@ class DataAnalysis:
         self.algorithms = {
             'logReg': ['LR', algs.logisticRegression()],
             'svm': ['SVM', algs.SVM()],
+            'svc': ['SVC', algs.SVM(linear=True)],
             'dt': ['DT', algs.DecisionTree()],
             'rf': ['RF', algs.RandomForest()],
             'ann': ['ANN', algs.ANN()],

@@ -93,7 +93,7 @@ if __name__ == '__main__':
     SHOULD_RESAMPLE = False
     RANDOM_SEED = 42
     PI = False
-    algs = ['svm']
+    algs = ['logReg', 'svc', 'dt', 'rf', 'ann']
     # algs = ['dt']
     datasetSizes = args.size
     print(datasetSizes)

@@ -17,8 +17,8 @@ class Algorithms:
     def logisticRegression(self):
         return LogisticRegression(verbose=self.verbose, class_weight='balanced', max_iter=10000, n_jobs=self.jobs)
 
-    def SVM(self):
-        if self.pi:
+    def SVM(self, linear=False):
+        if linear:
             return LinearSVC(dual=False, class_weight='balanced', verbose=self.verbose)
         return SVC(class_weight='balanced', verbose=self.verbose)
         
