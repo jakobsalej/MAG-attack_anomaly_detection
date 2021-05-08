@@ -214,7 +214,7 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-s','--size', type=float, nargs='+', default=[0.2, 0.4, 0.6, 0.8, 1])
-    parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
+    parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'svc', 'dt', 'rf', 'ann'])
     args = parser.parse_args()
 
     # parameters
@@ -223,7 +223,7 @@ if __name__ == '__main__':
     PI = False
     RANDOM_SEED = 42            # set random seed for data sampling
     SHOULD_RESAMPLE = False     # set to True if training set should be resampled for a more balanced set
-    TRAIN_SET_SIZE = 0.2
+    TRAIN_SET_SIZE = 0.8
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
