@@ -2,7 +2,6 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.svm import SVC, LinearSVC
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.calibration import CalibratedClassifierCV
 
 from keras.wrappers.scikit_learn import KerasClassifier
 from ann import ANN
@@ -15,7 +14,7 @@ class Algorithms:
         self.pi = pi
 
     def logisticRegression(self):
-        return LogisticRegression(verbose=self.verbose, class_weight='balanced', max_iter=10000, n_jobs=self.jobs)
+        return LogisticRegression(solver='liblinear', multi_class='ovr', class_weight='balanced', max_iter=10000,  verbose=self.verbose)
 
     def SVM(self, linear=False):
         if linear:

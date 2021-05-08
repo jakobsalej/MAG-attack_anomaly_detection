@@ -84,19 +84,18 @@ class PerformanceAnalysis:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s','--size', type=float, nargs='+', required=True)
+    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.2, 0.4, 0.6, 0.8, 1])
+    parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
     args = parser.parse_args()
     
     pa = PerformanceAnalysis()
 
-    # variables
+    # parameters
+    datasetSizes = args.size
+    algs = args.alg
     SHOULD_RESAMPLE = False
     RANDOM_SEED = 42
     PI = False
-    algs = ['logReg', 'svc', 'dt', 'rf', 'ann']
-    # algs = ['dt']
-    datasetSizes = args.size
-    print(datasetSizes)
 
     # save run settings
     settings = {

@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime
 import os
 import json
+import argparse
 
 import pandas as pd
 import numpy as np
@@ -211,14 +212,18 @@ if __name__ == '__main__':
     # MODE 0:
     # take percentage of all data, then split it into train (80%) / test (20%)
 
+    parser = argparse.ArgumentParser()
+    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.2, 0.4, 0.6, 0.8, 1])
+    parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
+    args = parser.parse_args()
+
     # parameters
+    selectedSizes = args.size
+    selectedAlgorithms = args.alg
     PI = False
     RANDOM_SEED = 42            # set random seed for data sampling
     SHOULD_RESAMPLE = False     # set to True if training set should be resampled for a more balanced set
     TRAIN_SET_SIZE = 0.2
-
-    selectedSizes = [0.2, 0.4, 0.6, 0.8, 1]
-    selectedAlgorithms = ['logReg', 'svm', 'dt', 'rf', 'ann']
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)
