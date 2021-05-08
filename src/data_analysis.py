@@ -179,7 +179,7 @@ class DataAnalysis:
         disp = ConfusionMatrixDisplay(
             confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize=None), display_labels=self.targetClasses)
         disp = disp.plot(include_values=True, cmap=plt.cm.Blues,
-                         ax=None, xticks_rotation='horizontal')
+                         ax=None, xticks_rotation='horizontal', values_format='')
         disp.ax_.set_title(f'CM_{self.mode}_{fileName}')
         disp.figure_.savefig(f'{self.dirName}/graphs/CM_{fileName}.png')
         
@@ -189,7 +189,7 @@ class DataAnalysis:
         disp = ConfusionMatrixDisplay(
             confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize='true'), display_labels=self.targetClasses)
         disp = disp.plot(include_values=True, cmap=plt.cm.Blues,
-                         ax=None, xticks_rotation='horizontal')
+                         ax=None, xticks_rotation='horizontal', values_format='.1g')
         disp.ax_.set_title(f'CM_{self.mode}_{fileName}')
         disp.figure_.savefig(f'{self.dirName}/graphs/CM_{fileName}_normalized.png')
 
