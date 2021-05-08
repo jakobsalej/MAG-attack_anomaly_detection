@@ -26,7 +26,7 @@ class DataAnalysis:
         self.pi = pi
         self.verbose = verbose
         self.dirName = dirName
-        self.mode = mode
+        self.mode = 'Ds' if mode == 0 else 'D'
         self.targetClasses = [0, 1, 2, 3, 4, 5, 6, 7]
         self.classDistribution = {}
 
@@ -173,15 +173,25 @@ class DataAnalysis:
         pd.DataFrame(confusion_matrix(yTrue, yPredicted)).to_csv(
             f'{self.dirName}/results/CM_{fileName}.csv', index=False)
 
-        # save graph
+        # save CM
         plt.close('all')
         plt.figure()
         disp = ConfusionMatrixDisplay(
             confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize=None), display_labels=self.targetClasses)
         disp = disp.plot(include_values=True, cmap=plt.cm.Blues,
                          ax=None, xticks_rotation='horizontal')
-        disp.ax_.set_title(f'CM_{fileName}_M{self.mode}')
+        disp.ax_.set_title(f'CM_{self.mode}_{fileName}')
         disp.figure_.savefig(f'{self.dirName}/graphs/CM_{fileName}.png')
+        
+        # save normalized CM
+        plt.close('all')
+        plt.figure()
+        disp = ConfusionMatrixDisplay(
+            confusion_matrix=confusion_matrix(yTrue, yPredicted, normalize='true'), display_labels=self.targetClasses)
+        disp = disp.plot(include_values=True, cmap=plt.cm.Blues,
+                         ax=None, xticks_rotation='horizontal')
+        disp.ax_.set_title(f'CM_{self.mode}_{fileName}')
+        disp.figure_.savefig(f'{self.dirName}/graphs/CM_{fileName}_normalized.png')
 
     def saveROC(self, model, xTrain, yTrain, xTest, yTest, fileName):
         # Binarize the y
