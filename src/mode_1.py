@@ -96,9 +96,9 @@ def saveDataset(data, fileName, folder='datasets'):
 def saveScoresToCSV(fullTrain, fullTest):
     for alg in fullTrain:
         fullTrainDF = pd.DataFrame(data=fullTrain[alg], index=[
-            'accuracy', 'std', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'])
+            'accuracy', 'std', 'balanced_accuracy', 'f1', 'precision', 'recall'])
         fullTestDF = pd.DataFrame(data=fullTest[alg], index=[
-            'accuracy', 'balanced_accuracy', 'f1_weighted', 'precision_weighted', 'recall_weighted'])
+            'accuracy', 'balanced_accuracy', 'f1', 'precision', 'recall'])
 
         fullTrainDF.to_csv(f'{dirName}/results/train_results_{alg}.csv')
         fullTestDF.to_csv(f'{dirName}/results/test_results_{alg}.csv')
