@@ -226,7 +226,7 @@ if __name__ == '__main__':
     selectedAlgorithms = args.alg
     randomSeeds = [42]
     PI = False
-    SHOULD_RESAMPLE = False
+    SHOULD_RESAMPLE = True
 
     # create new directory for results of this run
     # name of the folder can be passed as param (default name is timestamp)

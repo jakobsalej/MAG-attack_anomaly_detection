@@ -93,7 +93,7 @@ if __name__ == '__main__':
     # parameters
     datasetSizes = args.size
     algs = args.alg
-    SHOULD_RESAMPLE = False
+    SHOULD_RESAMPLE = True
     RANDOM_SEED = 42
     PI = False
 
