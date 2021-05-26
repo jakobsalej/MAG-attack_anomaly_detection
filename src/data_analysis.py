@@ -286,7 +286,7 @@ class DataAnalysis:
 
         return trainScores, testScores
 
-    def getScores(self, xTrain, xTest, yTrain, yTest, trainSize=1, randomSeeds=[1, 2, 3, 4, 5], selectedAlgorithms=None, mode=1):
+    def getScores(self, xTrain, xTest, yTrain, yTest, trainSetPath, trainSize=1, randomSeeds=[1, 2, 3, 4, 5], selectedAlgorithms=None, mode=1):
         # by default, select all algorithms
         if selectedAlgorithms is None:
             selectedAlgorithms = self.algorithms.keys()
@@ -297,7 +297,7 @@ class DataAnalysis:
         for selected in selectedAlgorithms:
             algorithm = self.algorithms[selected]
             noOfSamples, trainScores, testScores = self.calculateAverageScores(
-                xTrain, xTest, yTrain, yTest, algorithm, trainSize, randomSeeds, mode)
+                xTrain, xTest, yTrain, yTest, algorithm, trainSize, randomSeeds, mode, trainSetPath)
             predictions[algorithm[0]] = (trainScores, testScores)
 
             print('\nAverage train/test accuracy:',
@@ -307,7 +307,7 @@ class DataAnalysis:
 
         return noOfSamples, predictions
 
-    def calculateAverageScores(self, xTrain, xTest, yTrain, yTest, algorithm, trainSize, randomSeeds, mode):
+    def calculateAverageScores(self, xTrain, xTest, yTrain, yTest, algorithm, trainSize, randomSeeds, mode, trainSetPath):
         trainScoresAll = []
         testScoresAll = []
         noOfSamples = 0
@@ -321,10 +321,12 @@ class DataAnalysis:
 
             # if training set for a given size and random seed is not saved yet, generate it and save it
             fileName = f'AD_set_train{trainSize * 100:.0f}_seed{seed}'
+            fullPath = trainSetPath if trainSetPath else f'{self.dirName}/datasets/{fileName}.csv'
+            print('Train set path:', fullPath)
 
             if mode == 1:
                 # generate new subsets
-                if trainSize != 1 and not os.path.exists(f'{self.dirName}/datasets/{fileName}.csv'):
+                if trainSize != 1 and not os.path.exists(fullPath):
                     # generate new training set
                     xTrain, _, yTrain, _ = self.splitTrainTest(
                         xTrain, yTrain, trainSize=trainSize, randomSeed=seed)
@@ -339,10 +341,17 @@ class DataAnalysis:
                 else:
                     # TODO: read from existing file instead of generating set again
                     # use existing training set
-                    xTrain, _, yTrain, _ = self.splitTrainTest(
-                        xTrain, yTrain, trainSize=trainSize, randomSeed=seed)
+                    # xTrain, _, yTrain, _ = self.splitTrainTest(
+                        # xTrain, yTrain, trainSize=trainSize, randomSeed=seed)
+                    tmpData = pd.read_csv(fullPath)
+                    xTrain = tmpData.iloc[:,0:11]
+                    yTrain = tmpData.iloc[:,11] 
+                    print('DATA', tmpData)
+                    print('x train', xTrain)
+                    print('y train',yTrain)
+                    
 
-            elif not os.path.exists(f'{self.dirName}/datasets/{fileName}.csv'):
+            elif not os.path.exists(fullPath):
                 # mode 0, keep sets the same and save them
                 self.saveData(xTrain.assign(
                     normality=yTrain.values), fileName)

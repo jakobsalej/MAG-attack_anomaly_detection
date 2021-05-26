@@ -189,9 +189,23 @@ def main():
 
     # Run predictions
     for datasetSize in selectedSizes:
+        # Custom mapping
+        TRAIN_SETS = {
+		    0.001: 'AD_subset_balanced_0.1.csv',
+		    0.002: 'AD_subset_balanced_0.2.csv',
+		    0.005: 'AD_subset_balanced_0.5.csv',
+		    0.01: 'AD_subset_balanced_1.csv',
+		    0.02: 'AD_subset_balanced_2.csv',
+		    0.05: 'AD_subset_balanced_5.csv',
+		    0.1: 'AD_subset_balanced_10.csv',
+		    0.15: 'AD_subset_balanced_15.csv',
+		    0.2: 'AD_subset_balanced_20.csv',
+        }
+        trainSetPath = f'../data/AD_datoteke/C7_random/{TRAIN_SETS[datasetSize]}'
+        print('file', trainSetPath)
+
         # get no. of samples and prediction accuracy
-        noOfSamples, predictions = da.getScores(xTrain, xTest, yTrain, yTest, trainSize=datasetSize, randomSeeds=randomSeeds, selectedAlgorithms=selectedAlgorithms) if selectedAlgorithms else da.getScores(
-            xTrain, yTrain, xTest, yTest, trainSize=datasetSize, randomSeeds=randomSeeds)
+        noOfSamples, predictions = da.getScores(xTrain, xTest, yTrain, yTest, trainSetPath, trainSize=datasetSize, randomSeeds=randomSeeds, selectedAlgorithms=selectedAlgorithms)
 
         # save results for graphs and .csv files
         savePredictionScores(noOfSamples, predictions, datasetSize)
@@ -217,7 +231,7 @@ if __name__ == '__main__':
     # split data into train / test first (use the same 20% of ALL data as testing set for all training sets)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.2, 0.4, 0.6, 0.8, 1])
+    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
     parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'svc', 'dt', 'rf', 'ann'])
     args = parser.parse_args()
 
@@ -226,9 +240,9 @@ if __name__ == '__main__':
     selectedAlgorithms = args.alg
     randomSeeds = [42]
     PI = False
-    SHOULD_RESAMPLE = True
+    SHOULD_RESAMPLE = False
 
-    # create new directory for results of this run
+    # create new directory for results of this run 
     # name of the folder can be passed as param (default name is timestamp)
     dirName = createDir()
 
