@@ -1,0 +1,10 @@
+,0.8
+anomalous(DoSattack),"(3707, 923)"
+anomalous(dataProbing),"(221, 50)"
+anomalous(malitiousControl),"(554, 163)"
+anomalous(malitiousOperation),"(525, 134)"
+anomalous(scan),"(974, 267)"
+anomalous(spying),"(350, 73)"
+anomalous(wrongSetUp),"(73, 22)"
+normal,"(222678, 55639)"
+sum,286353
