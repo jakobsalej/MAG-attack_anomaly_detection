@@ -240,6 +240,9 @@ class DataAnalysis:
         yTrainPredicted = calibratedModel.predict(xTrain)
         acc = accuracy_score(yTrain, yTrainPredicted)
         balancedAcc = balanced_accuracy_score(yTrain, yTrainPredicted)
+        # f1 = f1_score(yTrain, yTrainPredicted, labels=[0, 1, 2, 3, 4, 5, 6], average='micro', zero_division=0)
+        # precision = precision_score(yTrain, yTrainPredicted, labels=[0, 1, 2, 3, 4, 5, 6], average='micro', zero_division=0)
+        # recall = recall_score(yTrain, yTrainPredicted, labels=[0, 1, 2, 3, 4, 5, 6], average='micro', zero_division=0)
         f1 = f1_score(yTrain, yTrainPredicted,
                       average='weighted', zero_division=0)
         precision = precision_score(
@@ -267,6 +270,9 @@ class DataAnalysis:
         # get testing set scores
         acc = accuracy_score(yTest, yPredicted)
         balancedAcc = balanced_accuracy_score(yTest, yPredicted)
+        # f1 = f1_score(yTest, yPredicted, labels=[0, 1, 2, 3, 4, 5, 6], average='micro', zero_division=0)
+        # precision = precision_score(yTest, yPredicted, labels=[0, 1, 2, 3, 4, 5, 6], average='micro', zero_division=0)
+        # recall = recall_score(yTest, yPredicted, labels=[0, 1, 2, 3, 4, 5, 6], average='micro', zero_division=0)
         f1 = f1_score(yTest, yPredicted, average='weighted', zero_division=0)
         precision = precision_score(
             yTest, yPredicted, average='weighted', zero_division=0)
