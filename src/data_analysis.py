@@ -320,7 +320,7 @@ class DataAnalysis:
             print('\nRun #' + str(idx + 1))
 
             # if training set for a given size and random seed is not saved yet, generate it and save it
-            fileName = f'AD_set_train{trainSize * 100:.0f}_seed{seed}'
+            fileName = f'AD_set_train{str(trainSize)}_seed{seed}'
             fullPath = trainSetPath if trainSetPath else f'{self.dirName}/datasets/{fileName}.csv'
             print('Train set path:', fullPath)
 
@@ -344,8 +344,10 @@ class DataAnalysis:
                     # xTrain, _, yTrain, _ = self.splitTrainTest(
                         # xTrain, yTrain, trainSize=trainSize, randomSeed=seed)
                     tmpData = pd.read_csv(fullPath)
-                    xTrain = tmpData.iloc[:,0:11]
-                    yTrain = tmpData.iloc[:,11] 
+                    # xTrain = tmpData.iloc[:,0:11]
+                    # yTrain = tmpData.iloc[:,11] 
+                    xTrain = tmpData.iloc[:,1:12]
+                    yTrain = tmpData.iloc[:,12] 
                     print('DATA', tmpData)
                     print('x train', xTrain)
                     print('y train',yTrain)
@@ -358,7 +360,7 @@ class DataAnalysis:
 
             # get prediction scores
             trainScores, testScores = self.predict(
-                xTrain, xTest, yTrain, yTest, alg, fileName, f'{trainSize * 100:.0f}_{algName}')
+                xTrain, xTest, yTrain, yTest, alg, fileName, f'{str(trainSize)}_{algName}')
 
             # save size of training data
             noOfSamples = xTrain.shape[0]
