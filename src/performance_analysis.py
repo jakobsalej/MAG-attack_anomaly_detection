@@ -95,7 +95,7 @@ if __name__ == '__main__':
     algs = args.alg
     SHOULD_RESAMPLE = False
     RANDOM_SEED = 42
-    PI = False
+    PI = True
 
     # save run settings
     settings = {
