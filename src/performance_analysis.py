@@ -84,7 +84,8 @@ class PerformanceAnalysis:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
+    #parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
+    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
     parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'svc', 'dt', 'rf', 'ann'])
     args = parser.parse_args()
     
@@ -138,8 +139,7 @@ if __name__ == '__main__':
 
         for size in datasetSizes:
             # split training set further into smaller sets
-            # xTrainSmall, _, yTrainSmall, _ = da.splitTrainTest(
-            #     xTrain, yTrain, trainSize=size, scale=False, resample=False, randomSeed=RANDOM_SEED)
+            xTrainSmall, _, yTrainSmall, _ = da.splitTrainTest(xTrain, yTrain, trainSize=size, scale=False, resample=False, randomSeed=RANDOM_SEED)
             # TRAIN_SETS = {
             #     0.001: 'AD_subset_balanced_0.1.csv',
             #     0.002: 'AD_subset_balanced_0.2.csv',
@@ -153,26 +153,26 @@ if __name__ == '__main__':
             # }
             # trainSetPath = f'data/AD_datoteke/C7_random/{TRAIN_SETS[size]}'
 
-            TRAIN_SETS = {
-                0.001: 'AD_set_train_reduced_0.001_0.001.csv',
-                0.002: 'AD_set_train_reduced_0.002_0.001.csv',
-                0.005: 'AD_set_train_reduced_0.005_0.001.csv',
-                0.01: 'AD_set_train_reduced_0.01_0.001.csv',
-                0.02: 'AD_set_train_reduced_0.02_0.001.csv',
-                0.05: 'AD_set_train_reduced_0.05_0.001.csv',
-                0.1: 'AD_set_train_reduced_0.1_0.001.csv',
-                0.15: 'AD_set_train_reduced_0.15_0.001.csv',
-                0.2: 'AD_set_train_reduced_0.2_0.001.csv',
-            }
-            trainSetPath = f'data/AD_datoteke/Class_cluster/{TRAIN_SETS[size]}'
+#             TRAIN_SETS = {
+#                 0.001: 'AD_set_train_reduced_0.001_0.001.csv',
+#                 0.002: 'AD_set_train_reduced_0.002_0.001.csv',
+#                 0.005: 'AD_set_train_reduced_0.005_0.001.csv',
+#                 0.01: 'AD_set_train_reduced_0.01_0.001.csv',
+#                 0.02: 'AD_set_train_reduced_0.02_0.001.csv',
+#                 0.05: 'AD_set_train_reduced_0.05_0.001.csv',
+#                 0.1: 'AD_set_train_reduced_0.1_0.001.csv',
+#                 0.15: 'AD_set_train_reduced_0.15_0.001.csv',
+#                 0.2: 'AD_set_train_reduced_0.2_0.001.csv',
+#             }
+#             trainSetPath = f'data/AD_datoteke/Class_cluster/{TRAIN_SETS[size]}'
 
             # Read train set file
-            tmpData = pd.read_csv(trainSetPath)
+            # tmpData = pd.read_csv(trainSetPath)
             # xTrainSmall = tmpData.iloc[:,0:11]
             # yTrainSmall = tmpData.iloc[:,11] 
             
-            xTrainSmall = tmpData.iloc[:,1:12]
-            yTrainSmall = tmpData.iloc[:,12] 
+            # xTrainSmall = tmpData.iloc[:,1:12]
+            # yTrainSmall = tmpData.iloc[:,12] 
             
             # print('DATA', tmpData)
             print('x train', xTrainSmall)
