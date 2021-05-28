@@ -79,7 +79,7 @@ if __name__ == '__main__':
     noOfSamples, _ = xTrain.shape
     batchNumber = 0
     startIndex = 0
-    while startIndex < noOfSamples:
+    while startIndex < noOfSamples:      'logReg
         endIndex = min(startIndex + BATCH_SIZE, noOfSamples-1)
         
         # current batch
