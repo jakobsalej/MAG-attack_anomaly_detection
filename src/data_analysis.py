@@ -344,10 +344,10 @@ class DataAnalysis:
                     # xTrain, _, yTrain, _ = self.splitTrainTest(
                         # xTrain, yTrain, trainSize=trainSize, randomSeed=seed)
                     tmpData = pd.read_csv(fullPath)
-                    xTrain = tmpData.iloc[:,0:11]
-                    yTrain = tmpData.iloc[:,11] 
-                    # xTrain = tmpData.iloc[:,1:12]
-                    # yTrain = tmpData.iloc[:,12] 
+                    # xTrain = tmpData.iloc[:,0:11]
+                    # yTrain = tmpData.iloc[:,11] 
+                    xTrain = tmpData.iloc[:,1:12]
+                    yTrain = tmpData.iloc[:,12] 
                     print('DATA', tmpData)
                     print('x train', xTrain)
                     print('y train',yTrain)
