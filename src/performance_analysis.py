@@ -91,6 +91,7 @@ class PerformanceAnalysis:
             return duration
 
         for i in range(repeats):
+            duration = 0
 
             # Measure memory usage of each iteration
             with ThreadPoolExecutor() as executor:
@@ -109,7 +110,8 @@ class PerformanceAnalysis:
                     maxUsage = memThread.result()
                     memory.append(maxUsage)
                     
-                    print(f'{alg} predict, run {i+1}: {duration}s, memory usage: {maxUsage}')
+                    if duration is not None:
+                        print(f'{alg} predict, run {i+1}: {duration}s, memory usage: {maxUsage}')
                         
         return times, memory
 
