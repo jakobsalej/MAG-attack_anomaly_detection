@@ -130,8 +130,8 @@ class PerformanceAnalysis:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    #parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
-    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
+    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
+    # parser.add_argument('-s','--size', type=float, nargs='+', default=[0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
     parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
     parser.add_argument('-n','--name', type=str)
     args = parser.parse_args()
