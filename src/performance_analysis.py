@@ -53,6 +53,7 @@ class PerformanceAnalysis:
 
 
         for i in range(repeats):
+            duration = 0
 
             # Measure memory usage of each iteration
             with ThreadPoolExecutor() as executor:
@@ -71,7 +72,8 @@ class PerformanceAnalysis:
                     maxUsage = memThread.result()
                     memory.append(maxUsage)
 
-                    print(f'{alg} train, run {i+1}: {duration}s, memory usage: {maxUsage}')
+                    if duration is not None:
+                        print(f'{alg} train, run {i+1}: {duration}s, memory usage: {maxUsage}')
 
         # Keep last trained model for predictions
         self.model[alg] = calibratedModel
@@ -144,7 +146,7 @@ if __name__ == '__main__':
     PI = True
 
     # init
-    folderName = f'{datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")}_pi_C7_random_{args.name if args.name else ""}_{"all" if len(algs) == 5 else "_".join(algs)}_{"_".join(str(size) for size in datasetSizes)}'
+    folderName = f'{datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")}_pi_class_cluster_{args.name if args.name else ""}_{"all" if len(algs) == 5 else "_".join(algs)}_{"_".join(str(size) for size in datasetSizes)}'
     pa = PerformanceAnalysis(resultsDir=folderName)
 
     # save run settings
@@ -202,39 +204,39 @@ if __name__ == '__main__':
             # split training set further into smaller sets
             # xTrainSmall, _, yTrainSmall, _ = da.splitTrainTest(xTrain, yTrain, trainSize=size, scale=False, resample=False, randomSeed=RANDOM_SEED)
             
-            TRAIN_SETS = {
-                0.001: 'AD_subset_balanced_0.1.csv',
-                0.002: 'AD_subset_balanced_0.2.csv',
-                0.005: 'AD_subset_balanced_0.5.csv',
-                0.01: 'AD_subset_balanced_1.csv',
-                0.02: 'AD_subset_balanced_2.csv',
-                0.05: 'AD_subset_balanced_5.csv',
-                0.1: 'AD_subset_balanced_10.csv',
-                0.15: 'AD_subset_balanced_15.csv',
-                0.2: 'AD_subset_balanced_20.csv',
-            }
-            trainSetPath = f'data/AD_datoteke/C7_random/{TRAIN_SETS[size]}'
-
             # TRAIN_SETS = {
-            #     0.001: 'AD_set_train_reduced_0.001_0.001.csv',
-            #     0.002: 'AD_set_train_reduced_0.002_0.001.csv',
-            #     0.005: 'AD_set_train_reduced_0.005_0.001.csv',
-            #     0.01: 'AD_set_train_reduced_0.01_0.001.csv',
-            #     0.02: 'AD_set_train_reduced_0.02_0.001.csv',
-            #     0.05: 'AD_set_train_reduced_0.05_0.001.csv',
-            #     0.1: 'AD_set_train_reduced_0.1_0.001.csv',
-            #     0.15: 'AD_set_train_reduced_0.15_0.001.csv',
-            #     0.2: 'AD_set_train_reduced_0.2_0.001.csv',
+            #     0.001: 'AD_subset_balanced_0.1.csv',
+            #     0.002: 'AD_subset_balanced_0.2.csv',
+            #     0.005: 'AD_subset_balanced_0.5.csv',
+            #     0.01: 'AD_subset_balanced_1.csv',
+            #     0.02: 'AD_subset_balanced_2.csv',
+            #     0.05: 'AD_subset_balanced_5.csv',
+            #     0.1: 'AD_subset_balanced_10.csv',
+            #     0.15: 'AD_subset_balanced_15.csv',
+            #     0.2: 'AD_subset_balanced_20.csv',
             # }
-            # trainSetPath = f'data/AD_datoteke/Class_cluster/{TRAIN_SETS[size]}'
+            # trainSetPath = f'data/AD_datoteke/C7_random/{TRAIN_SETS[size]}'
+
+            TRAIN_SETS = {
+                0.001: 'AD_set_train_reduced_0.001_0.001.csv',
+                0.002: 'AD_set_train_reduced_0.002_0.001.csv',
+                0.005: 'AD_set_train_reduced_0.005_0.001.csv',
+                0.01: 'AD_set_train_reduced_0.01_0.001.csv',
+                0.02: 'AD_set_train_reduced_0.02_0.001.csv',
+                0.05: 'AD_set_train_reduced_0.05_0.001.csv',
+                0.1: 'AD_set_train_reduced_0.1_0.001.csv',
+                0.15: 'AD_set_train_reduced_0.15_0.001.csv',
+                0.2: 'AD_set_train_reduced_0.2_0.001.csv',
+            }
+            trainSetPath = f'data/AD_datoteke/Class_cluster/{TRAIN_SETS[size]}'
 
             # Read train set file
             tmpData = pd.read_csv(trainSetPath)
-            xTrainSmall = tmpData.iloc[:,0:11]
-            yTrainSmall = tmpData.iloc[:,11]
+            # xTrainSmall = tmpData.iloc[:,0:11]
+            # yTrainSmall = tmpData.iloc[:,11]
             
-            # xTrainSmall = tmpData.iloc[:,1:12]
-            # yTrainSmall = tmpData.iloc[:,12] 
+            xTrainSmall = tmpData.iloc[:,1:12]
+            yTrainSmall = tmpData.iloc[:,12] 
             
             # print('DATA', tmpData)
             print('x train', xTrainSmall)
