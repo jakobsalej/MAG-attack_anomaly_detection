@@ -3,6 +3,7 @@ from datetime import datetime
 import os
 import json
 import argparse
+import platform
 
 from concurrent.futures import ThreadPoolExecutor
 from memory_monitor import MemoryMonitor
@@ -58,22 +59,20 @@ class PerformanceAnalysis:
                 monitor = MemoryMonitor()
                 memThread = executor.submit(monitor.measure_usage)
                 try:
-                    # Save run time
+                    # Train the model
                     fnThread = executor.submit(run)
                     duration, calibratedModel = fnThread.result()
-                    print(f'{alg} train, run {i+1}: {duration}s')
-                    times.append(duration)
+                    
                 finally:
                     # Save max memory usage
                     monitor.keep_measuring = False
                     maxUsage = memThread.result()
                     memory.append(maxUsage)
 
-                    # RUSAGE_SELF: request resources consumed by the calling process,
-                    # which is the sum of resources used by all threads in the process
-                    # ru_maxrss: This is the maximum resident set size used (in kilobytes)
-                    # https://manpages.debian.org/buster/manpages-dev/getrusage.2.en.html
-                    print(f"Peak training memory usage: {maxUsage}")
+                    # Save run time
+                    times.append(duration)
+
+                    print(f'{alg} train, run {i+1}: {duration}s, memory usage: {maxUsage}')
 
         # Keep last trained model for predictions
         self.model[alg] = calibratedModel
@@ -97,22 +96,19 @@ class PerformanceAnalysis:
                 monitor = MemoryMonitor()
                 memThread = executor.submit(monitor.measure_usage)
                 try:
-                    # Save run time
+                    # Predict
                     fnThread = executor.submit(run)
                     duration = fnThread.result()
-                    print(f'{alg} predict, run {i+1}: {duration}s')
-                    times.append(duration)
                 finally:
                     # Save max memory usage
                     monitor.keep_measuring = False
                     maxUsage = memThread.result()
                     memory.append(maxUsage)
 
-                    # RUSAGE_SELF: request resources consumed by the calling process,
-                    # which is the sum of resources used by all threads in the process
-                    # ru_maxrss: This is the maximum resident set size used (in kilobytes)
-                    # https://manpages.debian.org/buster/manpages-dev/getrusage.2.en.html
-                    print(f"Peak inference memory usage: {maxUsage}")
+                    # Save prediction time
+                    times.append(duration)
+
+                    print(f'{alg} predict, run {i+1}: {duration}s, memory usage: {maxUsage}')
                         
         return times, memory
 
@@ -137,14 +133,8 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     #parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
     parser.add_argument('-s','--size', type=float, nargs='+', default=[0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
-    # parser.add_argument('-s','--size', type=float, nargs='+', default=[0.01])
-    parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf'])
-    # parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg'])
+    parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
     args = parser.parse_args()
-
-    folderName = f'{datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")}_{"_".join(args.alg)}'
-    
-    pa = PerformanceAnalysis(resultsDir=folderName)
 
     # parameters
     datasetSizes = args.size
@@ -153,6 +143,10 @@ if __name__ == '__main__':
     RANDOM_SEED = 42
     PI = True
 
+    # init
+    folderName = f'{datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")}_{"all" if len(algs) == 5 else "_".join(algs)}_{"_".join(str(size) for size in datasetSizes)}'
+    pa = PerformanceAnalysis(resultsDir=folderName)
+
     # save run settings
     settings = {
         'SCRIPT_VERSION': pa.version,
@@ -160,7 +154,8 @@ if __name__ == '__main__':
         'SELECTED_ALGORITHMS': algs,
         'PI_OPTIMIZED': PI,
         'RANDOM_SEED': RANDOM_SEED,
-        'RESAMPLED_DATASET': SHOULD_RESAMPLE
+        'RESAMPLED_DATASET': SHOULD_RESAMPLE,
+        'SYSTEM': platform.platform()
     }
     with open(f'{pa.resultsDirName}/run_settings.json', 'w') as fp:
         json.dump(settings, fp)
