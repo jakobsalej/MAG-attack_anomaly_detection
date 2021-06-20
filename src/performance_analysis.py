@@ -62,15 +62,14 @@ class PerformanceAnalysis:
                     # Train the model
                     fnThread = executor.submit(run)
                     duration, calibratedModel = fnThread.result()
-                    
+
+                    # Save run time
+                    times.append(duration)
                 finally:
                     # Save max memory usage
                     monitor.keep_measuring = False
                     maxUsage = memThread.result()
                     memory.append(maxUsage)
-
-                    # Save run time
-                    times.append(duration)
 
                     print(f'{alg} train, run {i+1}: {duration}s, memory usage: {maxUsage}')
 
@@ -99,15 +98,15 @@ class PerformanceAnalysis:
                     # Predict
                     fnThread = executor.submit(run)
                     duration = fnThread.result()
+
+                    # Save prediction time
+                    times.append(duration)
                 finally:
                     # Save max memory usage
                     monitor.keep_measuring = False
                     maxUsage = memThread.result()
                     memory.append(maxUsage)
-
-                    # Save prediction time
-                    times.append(duration)
-
+                    
                     print(f'{alg} predict, run {i+1}: {duration}s, memory usage: {maxUsage}')
                         
         return times, memory
@@ -134,6 +133,7 @@ if __name__ == '__main__':
     #parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
     parser.add_argument('-s','--size', type=float, nargs='+', default=[0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
     parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
+    parser.add_argument('-n','--name', type=str)
     args = parser.parse_args()
 
     # parameters
@@ -144,7 +144,7 @@ if __name__ == '__main__':
     PI = True
 
     # init
-    folderName = f'{datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")}_{"all" if len(algs) == 5 else "_".join(algs)}_{"_".join(str(size) for size in datasetSizes)}'
+    folderName = f'{datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")}_{args.name if args.name else ""}_{"all" if len(algs) == 5 else "_".join(algs)}_{"_".join(str(size) for size in datasetSizes)}'
     pa = PerformanceAnalysis(resultsDir=folderName)
 
     # save run settings
