@@ -36,7 +36,7 @@ class PerformanceAnalysis:
         if not os.path.exists(self.resultsDirName):
             os.mkdir(self.resultsDirName)
 
-    def measureFitTime(self, alg, algModel, X, y, repeats=5):
+    def measureFitTime(self, alg, algModel, X, y, repeats=1):
         times = []
         memory = []
         calibratedModel = None
@@ -80,7 +80,7 @@ class PerformanceAnalysis:
 
         return times, memory
 
-    def measurePredictTime(self, alg, X, y, repeats=5):
+    def measurePredictTime(self, alg, X, y, repeats=1):
         times = []
         memory = []
 
