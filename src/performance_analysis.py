@@ -147,7 +147,6 @@ if __name__ == '__main__':
     RANDOM_SEED = 42
     PI = True
 
-    # init
     folderName = f'{datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")}_pi_class_cluster_{args.name if args.name else ""}_{"all" if len(algs) == 5 else "_".join(algs)}_{"_".join(str(size) for size in datasetSizes)}'
     pa = PerformanceAnalysis(resultsDir=folderName)
 
