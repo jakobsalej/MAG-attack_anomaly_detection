@@ -253,7 +253,7 @@ if __name__ == '__main__':
     selectedSizes = args.size
     selectedAlgorithms = args.alg
     randomSeeds = [42]
-    PI = False
+    PI = True
     SHOULD_RESAMPLE = False
 
     # create new directory for results of this run 
