@@ -220,7 +220,7 @@ if __name__ == '__main__':
     # parameters
     selectedSizes = args.size
     selectedAlgorithms = args.alg
-    PI = False
+    PI = True
     RANDOM_SEED = 42            # set random seed for data sampling
     SHOULD_RESAMPLE = False     # set to True if training set should be resampled for a more balanced set
     TRAIN_SET_SIZE = 0.8
