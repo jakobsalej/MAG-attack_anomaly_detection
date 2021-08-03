@@ -23,7 +23,7 @@ from algorithms import Algorithms
 
 class PerformanceAnalysis:
     def __init__(self, resultsDir=datetime.now().strftime("%d-%m-%Y(%H-%M-%S)"), verbose=0):
-        self.version = 1.1
+        self.version = 2.0
         self.predictions = None
         self.verbose = verbose
         self.dirName = 'results/performance_analysis'
@@ -134,18 +134,22 @@ class PerformanceAnalysis:
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
-    # parser.add_argument('-s','--size', type=float, nargs='+', default=[0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
-    parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
-    parser.add_argument('-n','--name', type=str)
+    # parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
+    parser.add_argument('-s', '--size', type=float, nargs='+', default=[0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
+    parser.add_argument('-a', '--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
+    parser.add_argument('-n', '--name', type=str)
+    parser.add_argument('-p', '--pi', default=True, type=lambda x: (str(x).lower() in ['true','1', 'yes']))
+    parser.add_argument('-r', '--resample', default=False, type=lambda x: (str(x).lower() in ['true','1', 'yes']))
+    parser.add_argument('-d', '--dataset', type=str, default='main', choices={'main', 'c7_random', 'class_cluster'})
     args = parser.parse_args()
 
     # parameters
     datasetSizes = args.size
     algs = args.alg
-    SHOULD_RESAMPLE = False
+    SHOULD_RESAMPLE = args.resample
     RANDOM_SEED = 42
-    PI = True
+    PI = args.pi
+    DATASET = args.dataset
 
     folderName = f'{datetime.now().strftime("%d-%m-%Y(%H-%M-%S)")}_pi_class_cluster_{args.name if args.name else ""}_{"all" if len(algs) == 5 else "_".join(algs)}_{"_".join(str(size) for size in datasetSizes)}'
     pa = PerformanceAnalysis(resultsDir=folderName)
@@ -153,6 +157,7 @@ if __name__ == '__main__':
     # save run settings
     settings = {
         'SCRIPT_VERSION': pa.version,
+        'DATASET': DATASET,
         'TRAINING_SET_SIZES': datasetSizes,
         'SELECTED_ALGORITHMS': algs,
         'PI_OPTIMIZED': PI,
@@ -202,46 +207,43 @@ if __name__ == '__main__':
         predictMemory = {}
 
         for size in datasetSizes:
-            # split training set further into smaller sets
-            # xTrainSmall, _, yTrainSmall, _ = da.splitTrainTest(xTrain, yTrain, trainSize=size, scale=False, resample=False, randomSeed=RANDOM_SEED)
+            if (DATASET == 'main'):
+                # split training set further into smaller sets
+                xTrainSmall, _, yTrainSmall, _ = da.splitTrainTest(xTrain, yTrain, trainSize=size, scale=False, resample=False, randomSeed=RANDOM_SEED)
             
-            # TRAIN_SETS = {
-            #     0.001: 'AD_subset_balanced_0.1.csv',
-            #     0.002: 'AD_subset_balanced_0.2.csv',
-            #     0.005: 'AD_subset_balanced_0.5.csv',
-            #     0.01: 'AD_subset_balanced_1.csv',
-            #     0.02: 'AD_subset_balanced_2.csv',
-            #     0.05: 'AD_subset_balanced_5.csv',
-            #     0.1: 'AD_subset_balanced_10.csv',
-            #     0.15: 'AD_subset_balanced_15.csv',
-            #     0.2: 'AD_subset_balanced_20.csv',
-            # }
-            # trainSetPath = f'data/AD_datoteke/C7_random/{TRAIN_SETS[size]}'
+            elif (DATASET == 'c7_random'):
+                TRAIN_SETS = {
+                    0.001: 'AD_subset_balanced_0.1.csv',
+                    0.002: 'AD_subset_balanced_0.2.csv',
+                    0.005: 'AD_subset_balanced_0.5.csv',
+                    0.01: 'AD_subset_balanced_1.csv',
+                    0.02: 'AD_subset_balanced_2.csv',
+                    0.05: 'AD_subset_balanced_5.csv',
+                    0.1: 'AD_subset_balanced_10.csv',
+                    0.15: 'AD_subset_balanced_15.csv',
+                    0.2: 'AD_subset_balanced_20.csv',
+                }
+                trainSetPath = f'data/AD_datoteke/C7_random/{TRAIN_SETS[size]}'
+                tmpData = pd.read_csv(trainSetPath)
+                xTrainSmall = tmpData.iloc[:,0:11]
+                yTrainSmall = tmpData.iloc[:,11]
 
-            TRAIN_SETS = {
-                0.001: 'AD_set_train_reduced_0.001_0.001.csv',
-                0.002: 'AD_set_train_reduced_0.002_0.001.csv',
-                0.005: 'AD_set_train_reduced_0.005_0.001.csv',
-                0.01: 'AD_set_train_reduced_0.01_0.001.csv',
-                0.02: 'AD_set_train_reduced_0.02_0.001.csv',
-                0.05: 'AD_set_train_reduced_0.05_0.001.csv',
-                0.1: 'AD_set_train_reduced_0.1_0.001.csv',
-                0.15: 'AD_set_train_reduced_0.15_0.001.csv',
-                0.2: 'AD_set_train_reduced_0.2_0.001.csv',
-            }
-            trainSetPath = f'data/AD_datoteke/Class_cluster/{TRAIN_SETS[size]}'
-
-            # Read train set file
-            tmpData = pd.read_csv(trainSetPath)
-            # xTrainSmall = tmpData.iloc[:,0:11]
-            # yTrainSmall = tmpData.iloc[:,11]
-            
-            xTrainSmall = tmpData.iloc[:,1:12]
-            yTrainSmall = tmpData.iloc[:,12] 
-            
-            # print('DATA', tmpData)
-            print('x train', xTrainSmall)
-            print('y train',yTrainSmall)
+            elif (DATASET == 'class_cluster'):
+                TRAIN_SETS = {
+                    0.001: 'AD_set_train_reduced_0.001_0.001.csv',
+                    0.002: 'AD_set_train_reduced_0.002_0.001.csv',
+                    0.005: 'AD_set_train_reduced_0.005_0.001.csv',
+                    0.01: 'AD_set_train_reduced_0.01_0.001.csv',
+                    0.02: 'AD_set_train_reduced_0.02_0.001.csv',
+                    0.05: 'AD_set_train_reduced_0.05_0.001.csv',
+                    0.1: 'AD_set_train_reduced_0.1_0.001.csv',
+                    0.15: 'AD_set_train_reduced_0.15_0.001.csv',
+                    0.2: 'AD_set_train_reduced_0.2_0.001.csv',
+                }
+                trainSetPath = f'data/AD_datoteke/Class_cluster/{TRAIN_SETS[size]}'
+                tmpData = pd.read_csv(trainSetPath)
+                xTrainSmall = tmpData.iloc[:,1:12]
+                yTrainSmall = tmpData.iloc[:,12]
 
             # save training/testing set size to file
             if size not in setSizes:
