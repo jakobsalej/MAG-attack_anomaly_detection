@@ -1,1 +1,0 @@
-{"TRAINING_SET_SIZES": [0.6], "SELECTED_ALGORITHMS": ["logReg", "svm", "svc", "dt", "rf", "ann"], "PI_OPTIMIZED": true, "RANDOM_SEED": 42, "RESAMPLED_DATASET": true}
