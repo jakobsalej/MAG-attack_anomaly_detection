@@ -36,7 +36,7 @@ class PerformanceAnalysis:
         if not os.path.exists(self.resultsDirName):
             os.mkdir(self.resultsDirName)
 
-    def measureFitTime(self, alg, algModel, X, y, repeats=1):
+    def measureFitTime(self, alg, algModel, X, y, repeats=5):
         times = []
         memory = []
         calibratedModel = None
@@ -80,7 +80,7 @@ class PerformanceAnalysis:
 
         return times, memory
 
-    def measurePredictTime(self, alg, X, y, repeats=1):
+    def measurePredictTime(self, alg, X, y, repeats=5):
         times = []
         memory = []
 
@@ -135,7 +135,7 @@ class PerformanceAnalysis:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     # parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
-    parser.add_argument('-s', '--size', type=float, nargs='+', default=[0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
+    parser.add_argument('-s', '--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.4])
     parser.add_argument('-a', '--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
     parser.add_argument('-n', '--name', type=str)
     parser.add_argument('-p', '--pi', default=True, type=lambda x: (str(x).lower() in ['true','1', 'yes']))
