@@ -1,0 +1,1 @@
+{"SCRIPT_VERSION": 2.0, "DATASET": "main", "TRAINING_SET_SIZES": [0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.4, 0.6, 0.8, 1], "SELECTED_ALGORITHMS": ["dt"], "PI_OPTIMIZED": false, "RANDOM_SEED": 42, "RESAMPLED_DATASET": false, "SYSTEM": "Linux-5.0.0-38-generic-x86_64-with-Ubuntu-19.04-disco"}
