@@ -188,20 +188,21 @@ def main():
     dataInfo[1] = da.getDataCharacteristics(yTrain, yTest)
 
     # Run predictions
+    trainSetPath = None     # use default data
     for datasetSize in selectedSizes:
         # Custom mapping
-        TRAIN_SETS = {
-		    0.001: 'AD_subset_balanced_0.1.csv',
-		    0.002: 'AD_subset_balanced_0.2.csv',
-		    0.005: 'AD_subset_balanced_0.5.csv',
-		    0.01: 'AD_subset_balanced_1.csv',
-		    0.02: 'AD_subset_balanced_2.csv',
-		    0.05: 'AD_subset_balanced_5.csv',
-		    0.1: 'AD_subset_balanced_10.csv',
-		    0.15: 'AD_subset_balanced_15.csv',
-		    0.2: 'AD_subset_balanced_20.csv',
-        }
-        trainSetPath = f'../data/AD_datoteke/C7_random/{TRAIN_SETS[datasetSize]}'
+        # TRAIN_SETS = {
+		#     0.001: 'AD_subset_balanced_0.1.csv',
+		#     0.002: 'AD_subset_balanced_0.2.csv',
+		#     0.005: 'AD_subset_balanced_0.5.csv',
+		#     0.01: 'AD_subset_balanced_1.csv',
+		#     0.02: 'AD_subset_balanced_2.csv',
+		#     0.05: 'AD_subset_balanced_5.csv',
+		#     0.1: 'AD_subset_balanced_10.csv',
+		#     0.15: 'AD_subset_balanced_15.csv',
+		#     0.2: 'AD_subset_balanced_20.csv',
+        # }
+        # trainSetPath = f'../data/AD_datoteke/C7_random/{TRAIN_SETS[datasetSize]}'
 
         # TRAIN_SETS = {
 		#     0.001: 'AD_set_train_reduced_0.001_0.001.csv',
@@ -246,14 +247,14 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser()
     parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
-    parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'svc', 'dt', 'rf', 'ann'])
+    parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
     args = parser.parse_args()
 
     # parameters
     selectedSizes = args.size
     selectedAlgorithms = args.alg
     randomSeeds = [42]
-    PI = True
+    PI = False
     SHOULD_RESAMPLE = False
 
     # create new directory for results of this run 
