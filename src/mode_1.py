@@ -246,7 +246,7 @@ if __name__ == '__main__':
     # split data into train / test first (use the same 20% of ALL data as testing set for all training sets)
 
     parser = argparse.ArgumentParser()
-    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2])
+    parser.add_argument('-s','--size', type=float, nargs='+', default=[0.001, 0.002, 0.005, 0.01, 0.02, 0.05, 0.1, 0.15, 0.2, 0.4, 0.6, 0.8, 1])
     parser.add_argument('-a','--alg', type=str, nargs='+', default=['logReg', 'svm', 'dt', 'rf', 'ann'])
     args = parser.parse_args()
 
@@ -255,7 +255,7 @@ if __name__ == '__main__':
     selectedAlgorithms = args.alg
     randomSeeds = [42]
     PI = False
-    SHOULD_RESAMPLE = False
+    SHOULD_RESAMPLE = True
 
     # create new directory for results of this run 
     # name of the folder can be passed as param (default name is timestamp)

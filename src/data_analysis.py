@@ -320,7 +320,7 @@ class DataAnalysis:
             print('\nRun #' + str(idx + 1))
 
             # if training set for a given size and random seed is not saved yet, generate it and save it
-            fileName = f'AD_set_train{str(trainSize)}_seed{seed}'
+            fileName = 'AD_set_train' if trainSize == 1 else f'AD_set_train{str(trainSize)}_seed{seed}'
             fullPath = trainSetPath if trainSetPath else f'{self.dirName}/datasets/{fileName}.csv'
             print('Train set path:', fullPath)
 
@@ -339,7 +339,6 @@ class DataAnalysis:
                     self.saveClassDistribution(fileName, yTrain)
 
                 else:
-                    # TODO: read from existing file instead of generating set again
                     # use existing training set
                     # xTrain, _, yTrain, _ = self.splitTrainTest(
                         # xTrain, yTrain, trainSize=trainSize, randomSeed=seed)
