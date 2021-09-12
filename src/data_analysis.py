@@ -122,7 +122,8 @@ class DataAnalysis:
             xTest = pd.DataFrame(xTest, columns=xTestColumns)
 
         if resample:
-            xTrain, yTrain = self.randomResample(xTrain, yTrain)
+            # xTrain, yTrain = self.randomResample(xTrain, yTrain)
+            xTrain, yTrain = self.resample(xTrain, yTrain)
 
         print('### Number of train samples:', xTrain.shape[0])
         return xTrain, xTest, yTrain, yTest
