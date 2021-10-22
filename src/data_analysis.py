@@ -26,7 +26,7 @@ class DataAnalysis:
         self.pi = pi
         self.verbose = verbose
         self.dirName = dirName
-        self.mode = 'Ds' if mode == 0 else 'D'
+        self.mode = 'Ds' if mode == 0 else ('incremental' if mode == 2 else 'D')
         self.targetClasses = [0, 1, 2, 3, 4, 5, 6, 7]
         self.classDistribution = {}
 
@@ -38,7 +38,7 @@ class DataAnalysis:
             # 'svc': ['SVC', algs.SVM(linear=True)],
             'dt': ['DT', algs.DecisionTree()],
             'rf': ['RF', algs.RandomForest()],
-            'ann': ['ANN', algs.ANN()],
+            # 'ann': ['ANN', algs.ANN()],
         }
 
     def saveData(self, data, fileName, folder='datasets'):
@@ -163,8 +163,7 @@ class DataAnalysis:
         # save class distribution for each file
         c = Counter(data)
         allExamples = data.shape[0]
-        self.classDistribution[fileName] = [
-            f'{c[targetClass]} ({(c[targetClass] / allExamples) * 100:0.2f}%)' for targetClass in self.targetClasses]
+        self.classDistribution[fileName] = [c[targetClass] for targetClass in self.targetClasses]
 
     def getClassDistribution(self):
         return pd.DataFrame.from_dict(self.classDistribution, orient='index')

@@ -1,8 +1,7 @@
-import time
 from datetime import datetime
 import os
 import json
-import math
+from collections import Counter
 
 from data_preparation import DataPreparation
 from data_analysis import DataAnalysis
@@ -15,7 +14,6 @@ from sklearn.calibration import CalibratedClassifierCV
 from sklearn.linear_model import SGDClassifier
 from sklearn.metrics import balanced_accuracy_score, accuracy_score
 
-from algorithms import Algorithms
 
 
 class IncrementalTraining:
@@ -24,13 +22,18 @@ class IncrementalTraining:
         self.verbose = verbose
         self.dirName = 'results/incremental_training'
         self.resultsDirName = f'{self.dirName}/{resultsDir}'
-        self.model = {}
 
         if not os.path.exists(self.dirName):
             os.mkdir(self.dirName)
 
         if not os.path.exists(self.resultsDirName):
             os.mkdir(self.resultsDirName)
+
+        if not os.path.exists(f'{self.resultsDirName}/results'):
+            os.mkdir(f'{self.resultsDirName}/results')
+
+        if not os.path.exists(f'{self.resultsDirName}/graphs'):
+            os.mkdir(f'{self.resultsDirName}/graphs')
 
     def saveDataToCSV(self, data, fileName):
         data.to_csv(f'{self.resultsDirName}/{fileName}.csv')
@@ -60,7 +63,7 @@ if __name__ == '__main__':
     sampleData = dp.returnData(1, randomSeed=RANDOM_SEED)
 
     # split data into X and y
-    da = DataAnalysis(dirName=None, mode=1, pi=False)
+    da = DataAnalysis(dirName=pa.resultsDirName, mode=2, pi=False)
     X, y = da.splitXY(sampleData)
     allClasses = np.unique(y)
 
@@ -80,11 +83,16 @@ if __name__ == '__main__':
     batchNumber = 0
     startIndex = 0
     while startIndex < noOfSamples:
-        endIndex = min(startIndex + BATCH_SIZE, noOfSamples-1)
+        print('Batch number', batchNumber)
+        endIndex = min(startIndex + BATCH_SIZE, noOfSamples)
         
         # current batch
         xTrainBatch = xTrain[startIndex:endIndex]
-        yTrainBatch = yTrain[startIndex: endIndex]
+        yTrainBatch = yTrain[startIndex:endIndex]
+
+        # get class distribution for current batch
+        batchName = f'batch_{batchNumber + 1}'
+        da.saveClassDistribution(batchName, yTrainBatch)
 
         # train
         sgd.partial_fit(xTrainBatch, yTrainBatch, allClasses)
@@ -101,9 +109,18 @@ if __name__ == '__main__':
         testingAcc[batchNumber] = accuracy_score(yTest, predictedTest)
         testingBalancedAcc[batchNumber] = balanced_accuracy_score(yTest, predictedTest)
         print('Test Balanced acc', testingBalancedAcc[batchNumber])
+
+        # save test set CM
+        da.saveConfusionMatrix(yTest, predictedTest, batchName)
         
-        startIndex = endIndex + 1
-        batchNumber += 1 
+        startIndex = endIndex
+        batchNumber += 1
+
+        # if (endIndex == noOfSamples - 1):
+        #     break
+
+    # save class dists to .csv
+    da.getClassDistribution().to_csv(f'{pa.resultsDirName}/class_distribution.csv')
 
     # save scores to .csv
     print(trainingAcc)
